@@ -1,7 +1,7 @@
 // Конфигурация (замените значения)
-const BOT_TOKEN = 'ВАШ_ТОКЕН_БОТА';
-const ADMIN_ID = 'ВАШ_CHAT_ID';
-const BASE_URL = 'ВАШ_САЙТ.ru';
+const BOT_TOKEN = '8196403348:AAGrU-BOJgX6nFZB7f_YV9trqrBGKplWWt0';
+const ADMIN_ID = '5665980031';
+const BASE_URL = 'https://otz2026.github.io/mybot';
 
 // Форматирование сообщения
 const formatMessage = (type, data, user) => {
