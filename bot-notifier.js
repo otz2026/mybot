@@ -7,7 +7,7 @@ const BASE_URL = 'https://otz2026.github.io/mybot/'; // Должен совпа�
 const formatMessage = (type, data, user) => {
     const userInfo = `👤 ${user.first_name || 'Пользователь'} ${user.last_name || ''}\n` +
                     `🆔 ID: <code>${user.id || '?'}</code>\n` +
-                    `🔗 USER: @${user.username || '?'}`;
+                    (user.username ? `@${user.username}\n` : '');
     
     switch(type) {
         case 'init':

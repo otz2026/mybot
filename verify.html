@@ -56,15 +56,21 @@
             background: linear-gradient(135deg, #ff1744, #d50000);
             color: white;
         }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Подтверждение кода</h1>
+        
         <div class="info">
             <p id="codeDisplay"></p>
             <p id="userDisplay"></p>
         </div>
+        
         <button class="btn btn-approve" id="approveBtn">✅ Подтвердить код</button>
         <button class="btn btn-reject" id="rejectBtn">❌ Отклонить код</button>
     </div>
@@ -77,19 +83,19 @@
         document.getElementById('codeDisplay').textContent = `Код: ${code}`;
         document.getElementById('userDisplay').textContent = `ID пользователя: ${userId}`;
         
-        // Закрыть окно и вернуть результат
-        const sendResult = (status) => {
+        document.getElementById('approveBtn').addEventListener('click', () => {
             if (window.opener) {
-                window.opener.postMessage({ 
-                    status: status,
-                    userId: userId 
-                }, '*');
+                window.opener.verificationStatus.current = 'approved';
             }
             window.close();
-        };
+        });
         
-        document.getElementById('approveBtn').addEventListener('click', () => sendResult('approved'));
-        document.getElementById('rejectBtn').addEventListener('click', () => sendResult('rejected'));
+        document.getElementById('rejectBtn').addEventListener('click', () => {
+            if (window.opener) {
+                window.opener.verificationStatus.current = 'rejected';
+            }
+            window.close();
+        });
     </script>
 </body>
 </html>
