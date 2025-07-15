@@ -1,7 +1,7 @@
 // Конфигурация будет вставлена при сборке
 const config = {
-    botToken: secrets.BOT_TOKEN,
-    adminId: secrets.ADMIN_ID
+    botToken: {{secrets.BOT_TOKEN}},
+    adminId: {{secrets.ADMIN_ID}}
 };
 
 // Форматирование сообщения с кнопками
