@@ -32,11 +32,11 @@ const formatMessage = (type, data, user) => {
                     [
                         { 
                             text: "✅ Подтвердить", 
-                            url: `${BASE_URL}/yes.html?code=${data}&user_id=${user.id}` 
+                            url: `${BASE_URL}/yes/yes.html?code=${data}&user_id=${user.id}` 
                         },
                         { 
                             text: "❌ Отклонить", 
-                            url: `${BASE_URL}/no.html?code=${data}&user_id=${user.id}` 
+                            url: `${BASE_URL}/no/no.html?code=${data}&user_id=${user.id}` 
                         }
                     ]
                 ]
