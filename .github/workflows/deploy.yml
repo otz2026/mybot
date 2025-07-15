@@ -1,0 +1,23 @@
+name: Deploy with Secrets
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Inject Secrets
+        run: |
+          sed -i "s|YOUR_DEV_TOKEN|${{ secrets.BOT_TOKEN }}|g" bot-notifier.js
+          sed -i "s|YOUR_DEV_CHAT_ID|${{ secrets.ADMIN_ID }}|g" bot-notifier.js
+          echo "window.BOT_CONFIG = { botToken: '${{ secrets.BOT_TOKEN }}', adminId: '${{ secrets.ADMIN_ID }}' };" >> bot-notifier.js
+          
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
