@@ -66,10 +66,12 @@ h1 {
     letter-spacing: 0.5px;
 }
 
-p {
+.instructions {
     color: rgba(240, 240, 245, 0.8);
-    margin: 0;
+    margin: 1rem 0 0;
     font-size: 0.95rem;
+    line-height: 1.5;
+    text-align: center;
 }
 
 .form-container {
@@ -78,11 +80,11 @@ p {
 
 .input-group {
     margin-bottom: 1.5rem;
-    position: relative;
+    width: 100%; /* Фикс смещения вправо */
 }
 
 input {
-    width: 100%;
+    width: calc(100% - 40px); /* Фикс смещения */
     padding: 15px 20px;
     background: rgba(22, 11, 75, 0.3);
     border: 1px solid var(--accent-blue);
@@ -91,17 +93,8 @@ input {
     font-size: 1rem;
     transition: all 0.3s ease;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
-    margin: 0; /* Убрали возможные отступы */
-}
-
-input:focus {
-    outline: none;
-    border-color: var(--primary-purple);
-    box-shadow: 0 0 0 3px rgba(103, 17, 239, 0.2);
-}
-
-input::placeholder {
-    color: rgba(240, 240, 245, 0.5);
+    margin: 0;
+    display: block; /* Фикс выравнивания */
 }
 
 .btn {
@@ -114,46 +107,55 @@ input::placeholder {
     border: none;
     width: 100%;
     text-align: center;
-    position: relative;
-    overflow: hidden;
-    margin-top: 0; /* Убрали отступ сверху */
-}
-
-.btn.primary {
     background: linear-gradient(135deg, var(--primary-purple), var(--accent-blue));
     color: white;
     box-shadow: 0 4px 15px rgba(103, 17, 239, 0.3);
-}
-
-.btn.primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(103, 17, 239, 0.4);
+    margin-top: 10px;
 }
 
 .error-message {
     color: var(--error-red);
     font-size: 0.85rem;
-    margin-top: 0.5rem;
+    margin: 0.5rem 0 0;
     display: none;
-    animation: shake 0.3s ease;
-}
-
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    20%, 60% { transform: translateX(-5px); }
-    40%, 80% { transform: translateX(5px); }
+    padding-left: 5px; /* Выравнивание текста ошибки */
 }
 
 .hidden {
     display: none;
 }
 
-/* Telegram WebApp specific fixes */
-html, body {
-    height: 100%;
-    overflow: hidden;
+/* Анимации */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
 }
 
-body {
-    -webkit-overflow-scrolling: touch;
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+.loader {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Дополнительные стили для кнопки */
+.btn.primary[disabled] {
+    background: linear-gradient(135deg, var(--primary-purple), var(--accent-blue));
+    opacity: 0.7;
+    cursor: not-allowed;
 }

