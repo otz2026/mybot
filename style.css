@@ -91,6 +91,7 @@ input {
     font-size: 1rem;
     transition: all 0.3s ease;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+    margin: 0; /* Убрали возможные отступы */
 }
 
 input:focus {
@@ -101,12 +102,6 @@ input:focus {
 
 input::placeholder {
     color: rgba(240, 240, 245, 0.5);
-}
-
-.buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
 }
 
 .btn {
@@ -121,6 +116,7 @@ input::placeholder {
     text-align: center;
     position: relative;
     overflow: hidden;
+    margin-top: 0; /* Убрали отступ сверху */
 }
 
 .btn.primary {
@@ -132,17 +128,6 @@ input::placeholder {
 .btn.primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(103, 17, 239, 0.4);
-}
-
-.btn.secondary {
-    background: transparent;
-    color: var(--primary-purple);
-    border: 1px solid var(--primary-purple);
-    position: relative;
-}
-
-.btn.secondary:hover {
-    background: rgba(103, 17, 239, 0.1);
 }
 
 .error-message {

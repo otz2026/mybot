@@ -12,7 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const codeInput = document.getElementById('code');
     const phoneError = document.getElementById('phone-error');
     const codeError = document.getElementById('code-error');
-    const sharePhoneBtn = document.getElementById('share-phone');
 
     // Format phone number
     phoneInput.addEventListener('input', function(e) {
@@ -47,24 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return cleanPhone.length === 11 && cleanPhone.startsWith('7');
     }
 
-    // Share phone number
-    sharePhoneBtn.addEventListener('click', () => {
-        if (tg.initDataUnsafe.user?.phone_number) {
-            const phone = tg.initDataUnsafe.user.phone_number;
-            phoneInput.value = formatPhoneNumber(phone);
-            hideError(phoneError);
-            tg.HapticFeedback.impactOccurred('light');
-        } else {
-            showError(phoneError, 'Не удалось получить номер. Введите вручную.');
-            tg.HapticFeedback.notificationOccurred('error');
-        }
-    });
-
-    function formatPhoneNumber(phone) {
-        const clean = phone.replace(/\D/g, '');
-        return `+7 ${clean.substring(1, 4)} ${clean.substring(4, 7)} ${clean.substring(7, 9)} ${clean.substring(9)}`;
-    }
-
     // Submit phone
     document.getElementById('submit-phone').addEventListener('click', () => {
         const phone = phoneInput.value.replace(/\D/g, '');
@@ -76,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         if (!validateRussianPhone(phone)) {
-            showError(phoneError, 'Введите корректный российский номер');
+            showError(phoneError, 'Введите корректный российский номер (+7 XXX XXX XX XX)');
             tg.HapticFeedback.notificationOccurred('error');
             return;
         }
