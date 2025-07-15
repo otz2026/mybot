@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tg.enableClosingConfirmation();
 
     // Конфигурация
-    const BASE_URL = 'https://ваш-сайт.ru'; // Замените на ваш URL
+    const BASE_URL = 'https://otz2026.github.io/mybot/'; // Замените на ваш URL
     
     // Элементы
     const phoneForm = document.getElementById('phone-form');
