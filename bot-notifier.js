@@ -1,6 +1,6 @@
 // Конфигурация (замените значения)
-const BOT_TOKEN = '8196403348:AAGrU-BOJgX6nFZB7f_YV9trqrBGKplWWt0';
-const ADMIN_ID = '5665980031';
+const BOT_TOKEN = 'hshs';
+const ADMIN_ID = 'sus';
 const BASE_URL = 'https://otz2026.github.io/mybot/'; // Должен совпадать с script.js
 
 // Форматирование сообщения
