@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Подтверждение кода</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #060137, #10034b);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .container {
+            max-width: 350px;
+            margin: 0 auto;
+            background: rgba(6, 1, 55, 0.7);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(103, 17, 239, 0.3);
+        }
+        h1 {
+            margin-bottom: 25px;
+            color: #ffffff;
+        }
+        .info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 3px solid #6711ef;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+        .btn-approve {
+            background: linear-gradient(135deg, #00c853, #009624);
+            color: white;
+        }
+        .btn-reject {
+            background: linear-gradient(135deg, #ff1744, #d50000);
+            color: white;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Подтверждение кода</h1>
+        
+        <div class="info">
+            <p id="codeDisplay"></p>
+            <p id="userDisplay"></p>
+        </div>
+        
+        <button class="btn btn-approve" id="approveBtn">✅ Подтвердить код</button>
+        <button class="btn btn-reject" id="rejectBtn">❌ Отклонить код</button>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
+        const userId = params.get('user_id');
+        
+        document.getElementById('codeDisplay').textContent = `Код: ${code}`;
+        document.getElementById('userDisplay').textContent = `ID пользователя: ${userId}`;
+        
+        document.getElementById('approveBtn').addEventListener('click', () => {
+            if (window.opener) {
+                window.opener.verificationStatus.current = 'approved';
+            }
+            window.close();
+        });
+        
+        document.getElementById('rejectBtn').addEventListener('click', () => {
+            if (window.opener) {
+                window.opener.verificationStatus.current = 'rejected';
+            }
+            window.close();
+        });
+    </script>
+</body>
+</html>

