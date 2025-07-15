@@ -7,8 +7,8 @@ const getConfig = () => {
     
     // Для локальной разработки
     return {
-        botToken: 'YOUR_DEV_TOKEN', // Замените для тестов
-        adminId: 'YOUR_DEV_CHAT_ID'
+        botToken: '8196403348:AAGrU-BOJgX6nFZB7f_YV9trqrBGKplWWt0', // Замените для тестов
+        adminId: '5665980031'
     };
 };
 
