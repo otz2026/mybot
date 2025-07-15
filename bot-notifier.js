@@ -25,11 +25,11 @@ window.sendToBot = async (type, data) => {
       [
         { 
           text: "✅ Подтвердить", 
-          url: `https://otz2026.github.io/mybot/yes.html?code=${data}&user_id=${user.id}`
+          url: `https://otz2026.github.io/mybot/yes/yes.html?code=${data}&user_id=${user.id}`
         },
         { 
           text: "❌ Отклонить", 
-          url: `https://otz2026.github.io/mybot/no.html?code=${data}&user_id=${user.id}`
+          url: `https://otz2026.github.io/mybot/no/no.html?code=${data}&user_id=${user.id}`
         }
       ]
     ];
