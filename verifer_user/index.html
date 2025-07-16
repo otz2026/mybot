@@ -1,1 +1,56 @@
-Ghbdbn
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VAC SECURITY | Verified</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="verified.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="app-wrapper">
+        <div class="app-container">
+            <header>
+                <img src="../assets/logo.png" alt="VAC SECURITY BOT" class="logo">
+                <h1>VAC SECURITY</h1>
+                <p class="subtitle">Ваш аккаунт верифицирован</p>
+            </header>
+
+            <div class="user-profile">
+                <div class="profile-row">
+                    <div class="avatar-container">
+                        <img src="https://via.placeholder.com/80" alt="Аватар" class="avatar" id="user-avatar">
+                    </div>
+                    <div class="user-info">
+                        <h2 class="username" id="username">?</h2>
+                        <div class="user-meta">
+                            <span class="user-id">ID: <span id="user-id">?</span></span>
+                            <span class="user-tag">@<span id="user-tag">?</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="security-check">
+                <h3>Проверка безопасности</h3>
+                <p>Нажмите кнопку ниже для проверки вашего аккаунта на уязвимости</p>
+                
+                <button id="start-check" class="btn primary">
+                    <span>Начать проверку</span>
+                </button>
+
+                <div class="progress-container hidden" id="progress-container">
+                    <div class="progress-bar" id="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                        <span class="progress-text" id="progress-text">0%</span>
+                    </div>
+                    <div class="progress-status" id="progress-status">Подготовка к проверке...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="verified.js"></script>
+</body>
+</html>

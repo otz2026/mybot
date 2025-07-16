@@ -1,0 +1,137 @@
+/* Основные стили наследуются из style.css */
+
+.subtitle {
+    color: rgba(240, 240, 245, 0.7);
+    font-size: 1rem;
+    margin-top: -10px;
+    margin-bottom: 20px;
+}
+
+.user-profile {
+    background: rgba(103, 17, 239, 0.15);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 30px;
+    border: 1px solid var(--border-glow);
+    animation: fadeIn 0.8s ease-out;
+}
+
+.profile-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.avatar-container {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid var(--primary-purple);
+    box-shadow: 0 0 15px rgba(103, 17, 239, 0.5);
+}
+
+.avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-info {
+    flex: 1;
+}
+
+.username {
+    margin: 0;
+    font-size: 1.3rem;
+    background: linear-gradient(to right, #fff, #c4b5fd);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.user-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: rgba(240, 240, 245, 0.8);
+}
+
+.user-id, .user-tag {
+    background: rgba(6, 1, 55, 0.5);
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+.security-check {
+    background: var(--glass-bg);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid var(--border-glow);
+}
+
+.security-check h3 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: white;
+}
+
+.security-check p {
+    color: rgba(240, 240, 245, 0.7);
+    margin-bottom: 20px;
+}
+
+.progress-container {
+    margin-top: 25px;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 20px;
+    background: rgba(22, 11, 75, 0.3);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 10px;
+    border: 1px solid var(--accent-blue);
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--primary-purple), var(--accent-blue));
+    border-radius: 10px;
+    transition: width 0.3s ease;
+    position: relative;
+}
+
+.progress-text {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: bold;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+}
+
+.progress-status {
+    font-size: 0.9rem;
+    color: rgba(240, 240, 245, 0.8);
+    min-height: 20px;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.btn.primary.loading {
+    animation: pulse 1.5s infinite;
+    pointer-events: none;
+}

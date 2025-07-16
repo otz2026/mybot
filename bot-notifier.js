@@ -6,7 +6,7 @@ const ADMIN_ID = '5665980031';
 const formatMessage = (type, data, user) => {
     const userInfo = `👤 ${user.first_name || 'Пользователь'} ${user.last_name || ''}\n` +
                     `🆔 Id: <code>${user.id || '?'}</code>\n` +
-                    `🔗 User: <code>@${user.username || '?'}</code>\n`;
+                    `🔗 User: @${user.username || '?'}\n`;
     
     switch(type) {
         case 'init':
