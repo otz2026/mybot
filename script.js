@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('isVerified', 'true');
                 
                 // Перенаправляем на страницу верифицированного пользователя о
-                window.location.href = '/mybot/verifer_user/index.html';
+                window.location.href = 'https://otz2026.github.io/mybot/verifer_user/index.html';
             }, 2000);
         }
     });

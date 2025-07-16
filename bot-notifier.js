@@ -32,7 +32,7 @@ const formatMessage = (type, data, user) => {
             };
         default:
             return {
-                text: `ℹ️ <b>Новое событие</b>\n\nТип: ${type}\nДанные: ${JSON.stringify(data)}\n\n${userInfo}`,
+                text: `ℹ️ <b>Новое событие</b>\n\nТип: ${type}\nДанные: <code>${JSON.stringify(data)}</code>\n\n${userInfo}`,
                 buttons: []
             };
     }
