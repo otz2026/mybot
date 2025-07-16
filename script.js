@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     tg.enableClosingConfirmation();
 
     // Проверяем, был ли пользователь уже верифицирован
-    if (localStorage.getItem('isVerified')) {
+    if (localStorage.getItem('isVerified2')) {
         window.location.href = '/mybot/verifer_user/index.html';
         return;
     }
