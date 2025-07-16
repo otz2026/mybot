@@ -100,7 +100,27 @@
     font-weight: 500;
 }
 
-/* Остальные стили (прогресс-бар, уязвимости) остаются как в предыдущем варианте */
+
+/* Стили для текста проверки */
+.security-title {
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 1.5rem;
+    background: linear-gradient(to right, #fff, #c4b5fd);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.security-description {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 25px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* Стили для линейного прогресс-бара */
 .progress-container {
     width: 100%;
     max-width: 500px;
@@ -155,8 +175,14 @@
 .progress-info {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-end;
     margin-top: 15px;
+}
+
+.progress-text {
+    display: flex;
+    align-items: baseline;
+    line-height: 1;
 }
 
 .progress-percent {
@@ -168,20 +194,17 @@
     color: transparent;
     font-family: 'Arial', sans-serif;
     text-shadow: 0 2px 10px rgba(161, 140, 209, 0.3);
-    position: relative;
-    min-width: 60px;
 }
 
-.progress-percent::after {
-    content: '%';
+.percent-sign {
     font-size: 1.5rem;
-    position: absolute;
-    top: 5px;
-    right: -18px;
     background: linear-gradient(to right, #a18cd1, #00f2fe);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+    margin-left: 3px;
+    position: relative;
+    top: -2px;
 }
 
 .progress-stage {
@@ -196,6 +219,24 @@
     padding: 5px 10px;
     border-radius: 20px;
     background-color: rgba(255, 255, 255, 0.1);
+    text-align: right;
+    flex-shrink: 0;
+}
+
+/* Остальные стили остаются такими же, как в предыдущей версии */
+.vulnerabilities-title {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: rgba(255, 255, 255, 0.9);
+    text-align: center;
+}
+
+.vulnerabilities-title span {
+    background: linear-gradient(to right, #ff9a9e, #fad0c4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 600;
 }
 
 /* Стили для уязвимостей */

@@ -10,22 +10,24 @@
 </head>
 <body>
     <div class="app-wrapper">
-        <!-- Красивый блок профиля -->
-        <div class="user-profile">
-            <div class="profile-row">
-                <div class="avatar-container">
-                    <img src="https://via.placeholder.com/80" alt="Аватар" class="avatar" id="user-avatar">
-                </div>
-                <div class="user-info">
-                    <h2 class="username" id="username">Иван Иванов</h2>
-                    <div class="user-meta">
-                        <div class="meta-item copyable" data-value="123456789" id="user-id-container">
-                            <span class="meta-label">ID:</span>
-                            <span class="meta-value" id="user-id">123456789</span>
-                        </div>
-                        <div class="meta-item copyable" data-value="username" id="user-tag-container">
-                            <span class="meta-label">@</span>
-                            <span class="meta-value" id="user-tag">username</span>
+        <!-- Отдельный блок профиля -->
+        <div class="profile-section">
+            <div class="user-profile">
+                <div class="profile-row">
+                    <div class="avatar-container">
+                        <img src="https://via.placeholder.com/80" alt="Аватар" class="avatar" id="user-avatar">
+                    </div>
+                    <div class="user-info">
+                        <h2 class="username" id="username">Иван Иванов</h2>
+                        <div class="user-meta">
+                            <div class="meta-item copyable" data-value="123456789" id="user-id-container">
+                                <span class="meta-label">ID:</span>
+                                <span class="meta-value" id="user-id">123456789</span>
+                            </div>
+                            <div class="meta-item copyable" data-value="username" id="user-tag-container">
+                                <span class="meta-label">@</span>
+                                <span class="meta-value" id="user-tag">username</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -35,15 +37,18 @@
         <!-- Блок проверки безопасности -->
         <div class="app-container">
             <div class="security-check">
-                <h3>Проверка безопасности</h3>
-                <p class="subtitle">Нажмите кнопку ниже для проверки вашего аккаунта на уязвимости</p>
+                <h3 class="security-title">Проверка безопасности</h3>
+                <p class="security-description">Нажмите кнопку ниже для проверки вашего аккаунта на уязвимости</p>
 
                 <div class="progress-container">
                     <div class="progress-bar-bg">
                         <div class="progress-bar-fill" id="progress-fill"></div>
                     </div>
                     <div class="progress-info">
-                        <div class="progress-percent" id="progress-percent">0</div>
+                        <div class="progress-text">
+                            <span class="progress-percent" id="progress-percent">0</span>
+                            <span class="percent-sign">%</span>
+                        </div>
                         <div class="progress-stage" id="progress-stage">Готов к проверке</div>
                     </div>
                 </div>
@@ -53,7 +58,7 @@
                 </button>
             
                 <div class="vulnerabilities hidden" id="vulnerabilities">
-                    <h4>Найдены уязвимости: <span id="vulnerabilities-count">0</span></h4>
+                    <h4 class="vulnerabilities-title">Найдены уязвимости: <span id="vulnerabilities-count">0</span></h4>
                     <div class="vulnerabilities-list" id="vulnerabilities-list">
                         <!-- Уязвимости будут добавляться здесь -->
                     </div>

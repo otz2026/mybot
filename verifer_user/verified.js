@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Функция проверки безопасности
     function startSecurityCheck() {
         let progress = 0;
-        const duration = 30000; // 3 секунды для демонстрации
+        const duration = 3000; // 3 секунды для демонстрации
         const interval = 30; // Обновление каждые 30мс
         const steps = duration / interval;
         const increment = 100 / steps;
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Анимация заполнения
         progressFill.style.width = `${percent}%`;
-        progressPercent.textContent = rounded;
+        document.getElementById('progress-percent').textContent = rounded;
         
         // Стадии проверки
         if (percent < 25) {
