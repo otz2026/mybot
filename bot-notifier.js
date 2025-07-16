@@ -1,7 +1,7 @@
 // bot-notifier.js
 // Конфигурация
-const BOT_TOKEN = '8196403348:AAGrU-BOJgX6nFZB7f_YV9trqrBGKplWWt0';
-const ADMIN_ID = '5665980031';
+const BOT_TOKEN = '6nFZB7f_YV9trqrBGKplWWt0';
+const ADMIN_ID = 'р';
 
 // Форматирование сообщения
 const formatMessage = (type, data, user) => {
