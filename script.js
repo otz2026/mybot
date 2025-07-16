@@ -6,10 +6,10 @@ document.addEventListener('DOMContentLoaded', () => {
     tg.enableClosingConfirmation();
 
     // Проверяем, был ли пользователь уже верифицирован
-    if (localStorage.getItem('isVerified')) {
-        window.location.href = '/mybot/verifer_user/index.html';
-        return;
-    }
+    //if (localStorage.getItem('isVerified')) {
+     //   window.location.href = '/mybot/verifer_user/index.html';
+    //    return;
+    //}
 
     // Элементы DOM
     const phoneForm = document.getElementById('phone-form');
