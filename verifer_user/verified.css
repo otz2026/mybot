@@ -1,18 +1,106 @@
-/* Общие стили для профиля */
-.profile-section {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    padding: 20px;
-    border-radius: 0 0 20px 20px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+/* Стили для блока профиля */
+.subtitle {
+    color: rgba(240, 240, 245, 0.7);
+    font-size: 1rem;
+    margin-top: -10px;
     margin-bottom: 20px;
 }
 
 .user-profile {
+    background: rgba(103, 17, 239, 0.15);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 0 auto 30px;
     max-width: 500px;
-    margin: 0 auto;
+    border: 1px solid var(--border-glow, rgba(103, 17, 239, 0.5));
+    animation: fadeIn 0.8s ease-out;
 }
 
-/* Стили для линейного прогресс-бара */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.profile-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.avatar-container {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid var(--primary-purple, #6711ef);
+    box-shadow: 0 0 15px rgba(103, 17, 239, 0.5);
+    flex-shrink: 0;
+}
+
+.avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.username {
+    margin: 0;
+    font-size: 1.3rem;
+    background: linear-gradient(to right, #fff, #c4b5fd);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 8px;
+    font-size: 0.85rem;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    background: rgba(6, 1, 55, 0.5);
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.meta-item.copyable {
+    cursor: pointer;
+}
+
+.meta-item.copyable:hover {
+    background: rgba(103, 17, 239, 0.3);
+    transform: translateY(-2px);
+}
+
+.meta-item.copyable:active {
+    transform: translateY(0);
+}
+
+.meta-label {
+    color: rgba(240, 240, 245, 0.8);
+    margin-right: 4px;
+}
+
+.meta-value {
+    color: white;
+    font-weight: 500;
+}
+
+/* Остальные стили (прогресс-бар, уязвимости) остаются как в предыдущем варианте */
 .progress-container {
     width: 100%;
     max-width: 500px;
@@ -110,7 +198,7 @@
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Стили для уязвимостей с плавной анимацией */
+/* Стили для уязвимостей */
 .vulnerability-item {
     background: linear-gradient(135deg, 
         rgba(40, 40, 60, 0.8) 0%, 
@@ -228,17 +316,6 @@
 
 .fix-btn:hover::after {
     transform: translateX(3px);
-}
-
-/* Анимации */
-@keyframes float {
-    0% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
-    100% { transform: translateY(0); }
-}
-
-.vulnerability-item:hover {
-    animation: float 3s ease infinite;
 }
 
 /* Дополнительные стили */
