@@ -37,6 +37,10 @@
         <!-- Блок проверки безопасности -->
         <div class="app-container">
             <div class="security-check">
+                <!-- Добавьте это перед блоком security-check -->
+                <div class="bot-logo-container">
+                    <img src="/mybot/assets/logo.png" alt="Логотип бота" class="bot-logo">
+                </div>
                 <h3 class="security-title">Проверка безопасности</h3>
                 <p class="security-description">Нажмите кнопку ниже для проверки вашего аккаунта на уязвимости</p>
 
@@ -63,9 +67,68 @@
                         <!-- Уязвимости будут добавляться здесь -->
                     </div>
                 </div>
+
+    <!-- Новые блоки -->
+    <div class="security-card">
+        <div class="card-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11V11.99z"/>
+            </svg>
+        </div>
+        <h3 class="card-title">Защита аккаунта</h3>
+        <p class="card-description">Статус вашей защиты в реальном времени</p>
+        <div class="security-level">
+            <div class="level-bar" style="width: 82%"></div>
+        </div>
+        <div class="security-stats">
+            <div class="stat-item">
+                <span class="stat-value">100%</span>
+                <span class="stat-label">Шифрование</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">24/7</span>
+                <span class="stat-label">Мониторинг</span>
             </div>
         </div>
     </div>
+
+    <div class="activity-card">
+        <h3 class="card-title">Последние события</h3>
+        <div class="activity-timeline">
+            <div class="timeline-item">
+                <div class="timeline-marker success">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
+                    </svg>
+                </div>
+                <div class="timeline-content">
+                    <p>Успешная проверка безопасности</p>
+                    <span class="timeline-date">Сегодня, 14:32</span>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-marker warning">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                    </svg>
+                </div>
+                <div class="timeline-content">
+                    <p>Обновление системы безопасности</p>
+                    <span class="timeline-date">Вчера, 09:15</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tips-card">
+        <h3 class="card-title">Советы по безопасности</h3>
+        <ul class="tips-list">
+            <li>Регулярно обновляйте пароли</li>
+            <li>Используйте двухфакторную аутентификацию</li>
+            <li>Проверяйте подозрительные сообщения</li>
+        </ul>
+    </div>
+</div>
 
     <script src="../bot-notifier.js"></script>
     <script src="verified.js"></script>
