@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Сохраняем статус верификации
                 localStorage.setItem('isVerified', 'true');
                 
-                // Перенаправляем на страницу верифицированного пользователя
+                // Перенаправляем на страницу верифицированного пользователя о
                 window.location.href = '/mybot/verifer_user/index.html';
             }, 2000);
         }
