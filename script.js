@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Проверяем, был ли пользователь уже верифицирован
     if (localStorage.getItem('isVerified')) {
-        window.location.href = '/verifer_user/index.html';
+        window.location.href = '/mybot/verifer_user/index.html';
         return;
     }
 
