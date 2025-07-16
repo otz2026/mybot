@@ -6,12 +6,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Элементы DOM
     const startCheckBtn = document.getElementById('start-check');
-    const progressContainer = document.getElementById('progress-container');
     const progressFill = document.getElementById('progress-fill');
-    const progressText = document.getElementById('progress-text');
-    const progressStatus = document.getElementById('progress-status');
+    const progressPercent = document.getElementById('progress-percent');
+    const progressStage = document.getElementById('progress-stage');
     const vulnerabilitiesContainer = document.getElementById('vulnerabilities');
     const vulnerabilitiesList = document.getElementById('vulnerabilities-list');
+    const vulnerabilitiesCount = document.getElementById('vulnerabilities-count');
     const copyableItems = document.querySelectorAll('.copyable');
 
     // Вибрация
@@ -35,7 +35,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('user-avatar').src = user.photo_url;
         }
 
-        // Отправляем уведомление о входе верифицированного пользователя
         if (window.sendToBot) {
             window.sendToBot('verified_enter', {
                 userId: user.id,
@@ -65,10 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
     startCheckBtn.addEventListener('click', () => {
         startCheckBtn.classList.add('loading');
         startCheckBtn.innerHTML = '<div class="loader"></div> Проверка...';
-        progressContainer.classList.remove('hidden');
         vulnerabilitiesContainer.classList.add('hidden');
         
-        // Отправляем уведомление о начале проверки
         if (window.sendToBot) {
             window.sendToBot('security_check_start', {
                 userId: tg.initDataUnsafe.user?.id
@@ -81,8 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Функция проверки безопасности
     function startSecurityCheck() {
         let progress = 0;
-        const duration = 30000; // 1 минута
-        const interval = 100; // Обновление каждые 100мс
+        const duration = 30000; // 3 секунды для демонстрации
+        const interval = 30; // Обновление каждые 30мс
         const steps = duration / interval;
         const increment = 100 / steps;
         
@@ -91,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (progress >= 100) {
                 progress = 100;
                 clearInterval(checkInterval);
-                completeCheck();
+                setTimeout(completeCheck, 300);
             }
             
             updateProgress(progress);
@@ -101,27 +98,70 @@ document.addEventListener('DOMContentLoaded', () => {
     // Обновление прогресс-бара
     function updateProgress(percent) {
         const rounded = Math.round(percent);
-        const angle = (percent / 100) * 180;
-        progressFill.style.clipPath = `path('M 0,100 A 100,100 0 0 1 ${angle},${100 - Math.sin(angle * Math.PI / 180) * 100} L 200,100 Z')`;
-        progressText.textContent = `${rounded}%`;
         
-        // Меняем статус в зависимости от прогресса
-        if (percent < 20) {
-            progressStatus.textContent = 'Проверка базовых параметров...';
+        // Анимация заполнения
+        progressFill.style.width = `${percent}%`;
+        progressPercent.textContent = rounded;
+        
+        // Стадии проверки
+        if (percent < 25) {
+            progressStage.textContent = 'Проверка настроек';
         } else if (percent < 50) {
-            progressStatus.textContent = 'Анализ активности...';
-        } else if (percent < 80) {
-            progressStatus.textContent = 'Проверка системы безопасности...';
+            progressStage.textContent = 'Анализ активности';
+        } else if (percent < 75) {
+            progressStage.textContent = 'Проверка безопасности';
         } else {
-            progressStatus.textContent = 'Завершение проверки...';
+            progressStage.textContent = 'Завершение проверки';
         }
+        
+        // Вибрация при переходе между стадиями
+        if (percent % 25 === 0) {
+            vibrate('light');
+        }
+    }
+
+    // Функция для создания элемента уязвимости
+    function createVulnerabilityItem(title, description) {
+        const item = document.createElement('div');
+        item.className = 'vulnerability-item';
+        
+        item.innerHTML = `
+            <div class="vulnerability-header">
+                <h4 class="vulnerability-title">${title}</h4>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="vulnerability-details">
+                <p>${description}</p>
+                <button class="fix-btn">Исправить</button>
+            </div>
+        `;
+        
+        // Обработчик клика для раскрытия/скрытия деталей
+        const header = item.querySelector('.vulnerability-header');
+        const details = item.querySelector('.vulnerability-details');
+        const icon = item.querySelector('.toggle-icon');
+        
+        header.addEventListener('click', (e) => {
+            details.classList.toggle('active');
+            icon.textContent = details.classList.contains('active') ? '▲' : '▼';
+            vibrate('light');
+        });
+        
+        // Обработчик кнопки "Исправить"
+        const fixBtn = item.querySelector('.fix-btn');
+        fixBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            vibrate('medium');
+            tg.showAlert(`Попытка исправить: ${title}`);
+        });
+        
+        return item;
     }
 
     // Завершение проверки
     function completeCheck() {
         vibrate('heavy');
         
-        // Отправляем уведомление о завершении проверки
         if (window.sendToBot) {
             window.sendToBot('security_check_complete', {
                 userId: tg.initDataUnsafe.user?.id,
@@ -129,10 +169,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         
-        // Показываем уязвимости
         showVulnerabilities();
         
-        progressStatus.textContent = 'Проверка завершена!';
+        progressStage.textContent = 'Проверка завершена!';
         startCheckBtn.classList.remove('loading');
         startCheckBtn.textContent = 'Проверить снова';
         
@@ -144,17 +183,25 @@ document.addEventListener('DOMContentLoaded', () => {
         vulnerabilitiesList.innerHTML = '';
         
         const vulnerabilities = [
-            'Слабый пароль',
-            'Не включена двухфакторная аутентификация',
-            'Подозрительная активность в истории'
+            {
+                title: "Слабый пароль",
+                description: "Ваш пароль может быть легко взломан. Рекомендуем использовать комбинацию букв, цифр и специальных символов длиной не менее 12 знаков."
+            },
+            {
+                title: "Отсутствие 2FA",
+                description: "Двухфакторная аутентификация не включена. Это значительно повышает риск взлома вашего аккаунта. Включите 2FA в настройках безопасности."
+            },
+            {
+                title: "Подозрительная активность",
+                description: "Обнаружены необычные действия в вашем аккаунте за последние 30 дней. Рекомендуем сменить пароль и проверить историю входов."
+            }
         ];
         
         vulnerabilities.forEach(vuln => {
-            const li = document.createElement('li');
-            li.textContent = vuln;
-            vulnerabilitiesList.appendChild(li);
+            vulnerabilitiesList.appendChild(createVulnerabilityItem(vuln.title, vuln.description));
         });
         
+        vulnerabilitiesCount.textContent = vulnerabilities.length;
         vulnerabilitiesContainer.classList.remove('hidden');
     }
 });

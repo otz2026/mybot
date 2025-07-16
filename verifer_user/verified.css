@@ -1,215 +1,259 @@
-/* Основные стили наследуются из style.css */
-
-.subtitle {
-    color: rgba(240, 240, 245, 0.7);
-    font-size: 1rem;
-    margin-top: -10px;
+/* Общие стили для профиля */
+.profile-section {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    padding: 20px;
+    border-radius: 0 0 20px 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     margin-bottom: 20px;
 }
 
 .user-profile {
-    background: rgba(103, 17, 239, 0.15);
-    border-radius: 15px;
-    padding: 20px;
-    margin-bottom: 30px;
-    border: 1px solid var(--border-glow);
-    animation: fadeIn 0.8s ease-out;
+    max-width: 500px;
+    margin: 0 auto;
 }
 
-.profile-row {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-}
-
-.avatar-container {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 3px solid var(--primary-purple);
-    box-shadow: 0 0 15px rgba(103, 17, 239, 0.5);
-}
-
-.avatar {
+/* Стили для линейного прогресс-бара */
+.progress-container {
     width: 100%;
+    max-width: 500px;
+    margin: 0 auto 30px;
+    position: relative;
+}
+
+.progress-bar-bg {
+    width: 100%;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.progress-bar-fill {
     height: 100%;
-    object-fit: cover;
+    background: linear-gradient(90deg, 
+        #00f2fe 0%, 
+        #4facfe 50%, 
+        #a18cd1 100%);
+    border-radius: 10px;
+    width: 0%;
+    transition: width 0.3s ease-out;
+    position: relative;
+    overflow: hidden;
 }
 
-.user-info {
-    flex: 1;
+.progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    animation: progressShine 2s infinite linear;
 }
 
-.username {
-    margin: 0;
-    font-size: 1.3rem;
-    background: linear-gradient(to right, #fff, #c4b5fd);
+@keyframes progressShine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.progress-percent {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(to right, #00f2fe, #a18cd1);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-family: 'Arial', sans-serif;
+    text-shadow: 0 2px 10px rgba(161, 140, 209, 0.3);
+    position: relative;
+    min-width: 60px;
+}
+
+.progress-percent::after {
+    content: '%';
+    font-size: 1.5rem;
+    position: absolute;
+    top: 5px;
+    right: -18px;
+    background: linear-gradient(to right, #a18cd1, #00f2fe);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
 }
 
-.user-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 8px;
-    font-size: 0.85rem;
-}
-
-.meta-item {
-    display: flex;
-    align-items: center;
-    background: rgba(6, 1, 55, 0.5);
-    padding: 6px 10px;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-.meta-item.copyable:hover {
-    background: rgba(103, 17, 239, 0.3);
-    transform: translateY(-2px);
-}
-
-.meta-item.copyable:active {
-    transform: translateY(0);
-}
-
-.meta-label {
-    color: rgba(240, 240, 245, 0.8);
-    margin-right: 4px;
-}
-
-.meta-value {
-    color: white;
+.progress-stage {
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     font-weight: 500;
+    background: linear-gradient(to right, #fff, #c4b5fd);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    padding: 5px 10px;
+    border-radius: 20px;
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
-.security-check {
-    background: var(--glass-bg);
-    border-radius: 15px;
-    padding: 20px;
-    text-align: center;
-    border: 1px solid var(--border-glow);
-}
-
-.security-check h3 {
-    margin-top: 0;
-    font-size: 1.2rem;
-    color: white;
-}
-
-.security-check p {
-    color: rgba(240, 240, 245, 0.7);
-    margin-bottom: 20px;
-}
-
-.semi-circle-progress {
-    width: 200px;
-    height: 100px;
-    margin: 0 auto 20px;
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-}
-
-.progress-bar {
-    width: 100%;
-    height: 100%;
+/* Стили для уязвимостей с плавной анимацией */
+.vulnerability-item {
+    background: linear-gradient(135deg, 
+        rgba(40, 40, 60, 0.8) 0%, 
+        rgba(30, 30, 50, 0.8) 100%);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 
+        0 4px 20px rgba(0, 0, 0, 0.2),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.05);
     position: relative;
     overflow: hidden;
 }
 
-.progress-fill {
+.vulnerability-item::before {
+    content: '';
     position: absolute;
-    bottom: 0;
+    top: 0;
     left: 0;
-    width: 100%;
+    width: 4px;
     height: 100%;
-    background: conic-gradient(
-        var(--primary-purple) 0%,
-        var(--accent-blue) 100%
-    );
-    clip-path: path('M 0,100 A 100,100 0 0 1 200,100 L 200,100 Z');
-    transform-origin: center bottom;
-    transform: rotate(0.5turn);
-    transition: clip-path 0.3s ease;
+    background: linear-gradient(to bottom, #ff5e62, #ff9966);
 }
 
-.progress-text {
-    position: absolute;
-    left: 50%;
-    bottom: 20px;
-    transform: translateX(-50%);
-    color: white;
-    font-size: 1.2rem;
-    font-weight: bold;
-    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+.vulnerability-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 
+        0 6px 25px rgba(0, 0, 0, 0.3),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
-.progress-status {
-    font-size: 0.9rem;
-    color: rgba(240, 240, 245, 0.8);
-    min-height: 20px;
-    margin-top: 10px;
-}
-
-.vulnerabilities {
-    margin-top: 25px;
-    padding: 15px;
-    background: rgba(230, 57, 70, 0.15);
-    border-radius: 12px;
-    border-left: 3px solid var(--error-red);
-    animation: fadeIn 0.5s ease-out;
-}
-
-.vulnerabilities h4 {
-    margin: 0 0 10px 0;
-    color: var(--error-red);
-}
-
-.vulnerabilities-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    text-align: left;
-}
-
-.vulnerabilities-list li {
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(230, 57, 70, 0.3);
+.vulnerability-header {
     display: flex;
     align-items: center;
+    justify-content: space-between;
 }
 
-.vulnerabilities-list li:last-child {
-    border-bottom: none;
+.vulnerability-title {
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    font-size: 1.1rem;
+    background: linear-gradient(to right, #ff9a9e, #fad0c4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    position: relative;
+    padding-left: 30px;
 }
 
-.vulnerabilities-list li::before {
+.vulnerability-title::before {
     content: '⚠️';
-    margin-right: 8px;
+    position: absolute;
+    left: 0;
+    font-size: 1.3rem;
+    filter: drop-shadow(0 0 5px rgba(255, 100, 100, 0.5));
 }
 
-.btn.primary.loading {
-    animation: pulse 1.5s infinite;
+.vulnerability-details {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    color: rgba(240, 240, 245, 0.9);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    will-change: max-height;
+}
+
+.vulnerability-details.active {
+    max-height: 500px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.toggle-icon {
+    background: linear-gradient(to right, #ff9a9e, #fad0c4);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-size: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.fix-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 20px;
+    background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+    border-radius: 8px;
+    color: #2a2a40;
+    font-size: 0.9rem;
+    margin-top: 15px;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(255, 100, 100, 0.3);
+}
+
+.fix-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 100, 100, 0.4);
+}
+
+.fix-btn::after {
+    content: '→';
+    margin-left: 8px;
+    transition: transform 0.3s ease;
+}
+
+.fix-btn:hover::after {
+    transform: translateX(3px);
+}
+
+/* Анимации */
+@keyframes float {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+    100% { transform: translateY(0); }
+}
+
+.vulnerability-item:hover {
+    animation: float 3s ease infinite;
+}
+
+/* Дополнительные стили */
+.hidden {
+    display: none;
+}
+
+.btn.primary {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    display: block;
+}
+
+.loading {
     pointer-events: none;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
-}
-
-@keyframes vibrate {
-    0%, 100% { transform: translateX(0); }
-    20%, 60% { transform: translateX(-3px); }
-    40%, 80% { transform: translateX(3px); }
-}
-
-.error-vibrate {
-    animation: vibrate 0.5s;
+    opacity: 0.8;
 }

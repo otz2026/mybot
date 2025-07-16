@@ -10,8 +10,8 @@
 </head>
 <body>
     <div class="app-wrapper">
-        <div class="app-container">
-
+        <!-- Отдельный блок профиля -->
+        <div class="profile-section">
             <div class="user-profile">
                 <div class="profile-row">
                     <div class="avatar-container">
@@ -32,28 +32,33 @@
                     </div>
                 </div>
             </div>
+        </div>
 
+        <!-- Блок проверки безопасности -->
+        <div class="app-container">
             <div class="security-check">
                 <h3>Проверка безопасности</h3>
                 <p>Нажмите кнопку ниже для проверки вашего аккаунта на уязвимости</p>
-                
-                <div class="semi-circle-progress" id="progress-container">
-                    <div class="progress-bar" id="progress-bar">
-                        <div class="progress-fill" id="progress-fill"></div>
-                        <span class="progress-text" id="progress-text">0%</span>
-                    </div>
-                    <div class="progress-status" id="progress-status">Готов к проверке</div>
-                </div>
 
+                <div class="progress-container">
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="progress-info">
+                        <div class="progress-percent" id="progress-percent">0</div>
+                        <div class="progress-stage" id="progress-stage">Готов к проверке</div>
+                    </div>
+                </div>
+            
                 <button id="start-check" class="btn primary">
                     <span>Начать проверку</span>
                 </button>
-
+            
                 <div class="vulnerabilities hidden" id="vulnerabilities">
-                    <h4>Найдены уязвимости:</h4>
-                    <ul class="vulnerabilities-list" id="vulnerabilities-list">
-                        <!-- Сюда будут добавляться уязвимости -->
-                    </ul>
+                    <h4>Найдены уязвимости: <span id="vulnerabilities-count">0</span></h4>
+                    <div class="vulnerabilities-list" id="vulnerabilities-list">
+                        <!-- Уязвимости будут добавляться здесь -->
+                    </div>
                 </div>
             </div>
         </div>
