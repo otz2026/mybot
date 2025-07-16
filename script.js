@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         if (!validatePhone(phone)) {
-            showError(phoneError, 'Требуется российский номер: +7 XXX XXX-XX-XX');
+            showError(phoneError, 'Требуется российский номер: +7 XXX XXX XX XX');
             vibrate('error');
             return;
         }
