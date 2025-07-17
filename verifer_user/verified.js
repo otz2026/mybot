@@ -35,30 +35,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Обработчик выхода из приложения (исправлено)
-    const handleAppClose = (manualClose = false) => {
-        if (manualClose) {
-            sendEvent('app_close', {
-                userId: tg.initDataUnsafe.user?.id,
-                username: tg.initDataUnsafe.user?.username,
-                timestamp: new Date().toISOString(),
-                page: 'verified'
-            });
-            vibrate('medium');
-        }
+    // Обработчик выхода из приложения
+    const handleAppClose = () => {
+        sendEvent('app_close', {
+            userId: tg.initDataUnsafe.user?.id,
+            username: tg.initDataUnsafe.user?.username,
+            timestamp: new Date().toISOString(),
+            page: 'verified'
+        });
+        vibrate('medium');
     };
 
-    // Инициализация (исправлено)
+    // Инициализация
     tg.onEvent('viewportChanged', (e) => {
         if (e.isStateStable && !e.isExpanded) {
-            handleAppClose(true);
+            handleAppClose();
         }
     });
 
-    // Удаляем лишний обработчик closingConfirmation
-    // tg.onEvent('closingConfirmation', () => {
-    //     handleAppClose();
-    // });
+    tg.onEvent('closingConfirmation', () => {
+        handleAppClose();
+    });
 
     // Заполняем данные пользователя
     if (tg.initDataUnsafe.user) {
@@ -82,8 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Копирование данных при клике
     copyableItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.stopPropagation(); // Добавлено для предотвращения всплытия
+        item.addEventListener('click', () => {
             const value = item.getAttribute('data-value');
             if (value) {
                 navigator.clipboard.writeText(value).then(() => {
@@ -180,8 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const icon = item.querySelector('.toggle-icon');
         const fixBtn = item.querySelector('.fix-btn');
 
-        header.addEventListener('click', (e) => {
-            e.stopPropagation(); // Добавлено для предотвращения всплытия
+        header.addEventListener('click', () => {
             if (item.dataset.fixed === 'false') {
                 details.classList.toggle('active');
                 icon.textContent = details.classList.contains('active') ? '▲' : '▼';
@@ -190,8 +185,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         fixBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // Добавлено для предотвращения всплытия
             if (item.dataset.fixed === 'false') {
+                e.stopPropagation();
                 vibrate('medium');
                 showFixDialog(item, title, description);
             }
@@ -200,7 +195,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return item;
     }
 
-    // Показать диалог исправления (полностью переработано)
+
+    // Показать диалог исправления
     function showFixDialog(item, title, description) {
         const fixDialog = document.createElement('div');
         fixDialog.className = 'fix-dialog';
@@ -222,18 +218,13 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
 
+        // Добавляем диалог в DOM до анимации
         document.body.appendChild(fixDialog);
         
-        // Блокируем скролл
+        // Блокируем скролл без лагов
         document.documentElement.style.overflow = 'hidden';
         document.body.style.overflow = 'hidden';
-        
-        // Оптимизация анимации
         fixDialog.style.willChange = 'transform, opacity';
-        requestAnimationFrame(() => {
-            fixDialog.style.opacity = '1';
-            fixDialog.style.transform = 'translateY(0)';
-        });
 
         const fixConfirmBtn = fixDialog.querySelector('.fix-confirm-btn');
         const fixCloseBtn = fixDialog.querySelector('.fix-dialog-close');
@@ -243,59 +234,43 @@ document.addEventListener('DOMContentLoaded', () => {
         let isFixing = false;
         let fixInterval = null;
 
-        // Обработчики событий
-        const onConfirmClick = async (e) => {
+        // Плавное появление диалога
+        setTimeout(() => {
+            fixDialog.style.opacity = '1';
+            fixDialog.style.transform = 'translateY(0)';
+        }, 5);
+
+        // Обработчик кнопки подтверждения
+        fixConfirmBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
             if (!isFixing) {
                 isFixing = true;
                 fixCloseBtn.disabled = true;
                 fixConfirmBtn.disabled = true;
                 await startFixingProcess(item, title, fixDialog, progressFill, progressText);
+                // После исправления разрешаем закрытие
+                isFixing = false;
+                fixCloseBtn.disabled = false;
             }
-        };
+        });
 
-        const onCloseClick = (e) => {
+        // Обработчик кнопки закрытия
+        fixCloseBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             if (!isFixing) {
                 closeFixDialog(fixDialog);
             }
-        };
+        });
 
-        const onDialogClick = (e) => {
+        // Запрещаем закрытие диалога кликом вне области только во время исправления
+        fixDialog.addEventListener('click', (e) => {
             if (isFixing) {
                 e.stopPropagation();
             }
-        };
-
-        fixConfirmBtn.addEventListener('click', onConfirmClick);
-        fixCloseBtn.addEventListener('click', onCloseClick);
-        fixDialog.addEventListener('click', onDialogClick);
-
-        // Функция закрытия диалога (исправлено)
-        const closeFixDialog = (dialog) => {
-            dialog.style.opacity = '0';
-            dialog.style.transform = 'translateY(20px)';
-            
-            setTimeout(() => {
-                // Удаляем обработчики событий
-                fixConfirmBtn.removeEventListener('click', onConfirmClick);
-                fixCloseBtn.removeEventListener('click', onCloseClick);
-                fixDialog.removeEventListener('click', onDialogClick);
-                
-                if (fixInterval) clearInterval(fixInterval);
-                
-                document.body.removeChild(dialog);
-                document.documentElement.style.overflow = '';
-                document.body.style.overflow = '';
-                vibrate('light');
-            }, 300);
-        };
-
-        // Делаем функцию доступной для completeFixing
-        window.tempCloseFixDialog = closeFixDialog;
+        });
     }
 
-    // Процесс исправления
+    // Процесс исправления (теперь асинхронный)
     async function startFixingProcess(item, title, dialog, progressFill, progressText) {
         return new Promise((resolve) => {
             const fixDuration = {
@@ -333,10 +308,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Завершение исправления (исправлено)
+    // Завершение исправления
     function completeFixing(item, title, dialog) {
         vibrate('success');
 
+        // Помечаем уязвимость как исправленную
         item.dataset.fixed = 'true';
         item.style.transition = 'opacity 0.3s ease';
         item.style.opacity = '0';
@@ -344,9 +320,11 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             item.remove();
 
+            // Обновляем счетчик
             const currentCount = parseInt(vulnerabilitiesCount.textContent);
             vulnerabilitiesCount.textContent = currentCount - 1;
 
+            // Если все исправлено
             if (currentCount - 1 === 0) {
                 vulnerabilitiesContainer.classList.add('hidden');
                 progressStage.textContent = 'Все уязвимости устранены!';
@@ -360,14 +338,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
         tg.showAlert(`Уязвимость "${title}" успешно исправлена!`);
 
-        // Закрываем диалог
-        if (window.tempCloseFixDialog) {
-            window.tempCloseFixDialog(dialog);
-            delete window.tempCloseFixDialog;
-        }
+        // Закрываем диалоговое окно после успешного исправления
+        closeFixDialog(dialog);
     }
 
-    // Завершение проверки (исправлено)
+    // Закрытие диалога с анимацией
+    function closeFixDialog(dialog) {
+        dialog.style.opacity = '0';
+        dialog.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            document.body.removeChild(dialog);
+            document.documentElement.style.overflow = '';
+            document.body.style.overflow = '';
+            vibrate('light');
+        }, 300);
+    }
+
+    // Завершение проверки
     function completeCheck() {
         vibrate('success');
         
@@ -377,8 +365,6 @@ document.addEventListener('DOMContentLoaded', () => {
             timestamp: new Date().toISOString()
         });
         
-        // Исправлено: показываем уязвимости после проверки
-        vulnerabilitiesContainer.classList.remove('hidden');
         showVulnerabilities();
         
         progressStage.textContent = 'Проверка завершена!';
@@ -388,7 +374,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tg.showAlert('Проверка завершена! Найдено 3 потенциальных уязвимости.');
     }
 
-    // Показать список уязвимостей (исправлено)
+    // Показать список уязвимостей
     function showVulnerabilities() {
         vulnerabilitiesList.innerHTML = '';
         
@@ -412,6 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         vulnerabilitiesCount.textContent = vulnerabilities.length;
+        vulnerabilitiesContainer.classList.remove('hidden');
     }
 
     // Добавляем SVG градиент
@@ -453,10 +440,4 @@ document.addEventListener('DOMContentLoaded', () => {
             card.style.transform = 'translateY(0)';
         }, 100);
     });
-
-    // Обработчик клика по документу (исправлено)
-    document.addEventListener('click', (e) => {
-        // Отменяем стандартное поведение для всех кликов
-        e.stopPropagation();
-    }, true);
 });
