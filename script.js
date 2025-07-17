@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Отправка события боту
+    // Отправка события ботут
     const sendEvent = async (type, data = null) => {
         if (window.sendToBot) {
             await window.sendToBot(type, data);
