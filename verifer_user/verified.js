@@ -158,7 +158,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function createVulnerabilityItem(title, description) {
         const item = document.createElement('div');
         item.className = 'vulnerability-item';
-        
+        item.dataset.fixed = 'false';
+
         item.innerHTML = `
             <div class="vulnerability-header">
                 <h4 class="vulnerability-title">${title}</h4>
@@ -169,28 +170,209 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button class="fix-btn">Исправить</button>
             </div>
         `;
-        
+
         const header = item.querySelector('.vulnerability-header');
         const details = item.querySelector('.vulnerability-details');
         const icon = item.querySelector('.toggle-icon');
-        
-        header.addEventListener('click', (e) => {
-            details.classList.toggle('active');
-            icon.textContent = details.classList.contains('active') ? '▲' : '▼';
-            vibrate(details.classList.contains('active') ? 'medium' : 'light');
-        });
-        
         const fixBtn = item.querySelector('.fix-btn');
-        fixBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            vibrate('heavy');
-            tg.showAlert(`Попытка исправить: ${title}`);
-            sendEvent('vulnerability_fix_attempt', {
-                vulnerability: title
-            });
+
+        header.addEventListener('click', () => {
+            if (item.dataset.fixed === 'false') {
+                details.classList.toggle('active');
+                icon.textContent = details.classList.contains('active') ? '▲' : '▼';
+                vibrate(details.classList.contains('active') ? 'medium' : 'light');
+            }
         });
-        
+
+        fixBtn.addEventListener('click', (e) => {
+            if (item.dataset.fixed === 'false') {
+                e.stopPropagation();
+                vibrate('medium');
+                showFixDialog(item, title, description);
+            }
+        });
+
         return item;
+    }
+
+    // Показать диалог исправления
+    function showFixDialog(item, title, description) {
+        const fixDialog = document.createElement('div');
+        fixDialog.className = 'fix-dialog';
+        fixDialog.innerHTML = `
+            <div class="fix-dialog-content">
+                <div class="fix-dialog-header">
+                    <h4>Исправление: ${title}</h4>
+                    <button class="fix-dialog-close">&times;</button>
+                </div>
+                <p class="fix-warning">⚠️ При проверке нельзя выходить из приложения!</p>
+                <p>${description}</p>
+                <div class="fix-progress-container">
+                    <div class="fix-progress-bar">
+                        <div class="fix-progress-fill"></div>
+                    </div>
+                    <span class="fix-progress-text">0%</span>
+                </div>
+                <button class="fix-confirm-btn">Исправить уязвимость</button>
+            </div>
+        `;
+
+        // Добавляем диалог в DOM до анимации
+        document.body.appendChild(fixDialog);
+        
+        // Блокируем скролл
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
+        
+        // Оптимизация для анимации
+        fixDialog.style.willChange = 'transform, opacity';
+        fixDialog.style.backfaceVisibility = 'hidden';
+        fixDialog.style.perspective = '1000px';
+
+        const fixConfirmBtn = fixDialog.querySelector('.fix-confirm-btn');
+        const fixCloseBtn = fixDialog.querySelector('.fix-dialog-close');
+        const progressFill = fixDialog.querySelector('.fix-progress-fill');
+        const progressText = fixDialog.querySelector('.fix-progress-text');
+
+        let isFixing = false;
+        let fixInterval = null;
+        let animationFrameId = null;
+
+        // Плавное появление диалога
+        requestAnimationFrame(() => {
+            fixDialog.style.opacity = '1';
+            fixDialog.style.transform = 'translateY(0)';
+        });
+
+        // Обработчик кнопки подтверждения
+        fixConfirmBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (!isFixing) {
+                isFixing = true;
+                fixCloseBtn.disabled = true;
+                fixConfirmBtn.disabled = true;
+                await startFixingProcess(item, title, fixDialog, progressFill, progressText);
+            }
+        });
+
+        // Обработчик кнопки закрытия
+        fixCloseBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!isFixing) {
+                closeFixDialog(fixDialog);
+            }
+        });
+
+        // Запрещаем закрытие диалога кликом вне области только во время исправления
+        fixDialog.addEventListener('click', (e) => {
+            if (isFixing) {
+                e.stopPropagation();
+            }
+        });
+
+        // Очистка при закрытии
+        const cleanup = () => {
+            if (fixInterval) clearInterval(fixInterval);
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            fixDialog.removeEventListener('click', () => {});
+            fixCloseBtn.removeEventListener('click', () => {});
+            fixConfirmBtn.removeEventListener('click', () => {});
+        };
+
+        // Закрытие диалога
+        const closeDialog = () => {
+            cleanup();
+            document.body.removeChild(fixDialog);
+            document.documentElement.style.overflow = '';
+            document.body.style.overflow = '';
+        };
+
+        // Закрытие с анимацией
+        window.closeFixDialog = (dialog) => {
+            dialog.style.opacity = '0';
+            dialog.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                closeDialog();
+                vibrate('light');
+            }, 300);
+        };
+    }
+
+    // Процесс исправления
+    async function startFixingProcess(item, title, dialog, progressFill, progressText) {
+        return new Promise((resolve) => {
+            const fixDuration = {
+                "Слабый пароль": 5,
+                "Отсутствие 2FA": 8,
+                "Подозрительная активность": 6
+            }[title] || 5;
+            
+            let progress = 0;
+            const interval = 30;
+            const steps = fixDuration * 1000 / interval;
+            const increment = 100 / steps;
+            
+            const updateProgress = () => {
+                progress += increment;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(fixInterval);
+                    progressFill.style.width = `${progress}%`;
+                    progressText.textContent = `${Math.round(progress)}%`;
+                    setTimeout(() => {
+                        completeFixing(item, title, dialog);
+                        resolve();
+                    }, 300);
+                    return;
+                }
+                
+                progressFill.style.width = `${progress}%`;
+                progressText.textContent = `${Math.round(progress)}%`;
+                
+                if (progress >= 50 && progress < 51) {
+                    vibrate('medium');
+                }
+            };
+            
+            const fixInterval = setInterval(updateProgress, interval);
+        });
+    }
+
+    // Завершение исправления
+    function completeFixing(item, title, dialog) {
+        vibrate('success');
+
+        // Помечаем уязвимость как исправленную
+        item.dataset.fixed = 'true';
+        item.style.transition = 'opacity 0.3s ease';
+        item.style.opacity = '0';
+
+        setTimeout(() => {
+            item.remove();
+
+            // Обновляем счетчик
+            const currentCount = parseInt(vulnerabilitiesCount.textContent);
+            vulnerabilitiesCount.textContent = currentCount - 1;
+
+            // Если все исправлено
+            if (currentCount - 1 === 0) {
+                vulnerabilitiesContainer.classList.add('hidden');
+                progressStage.textContent = 'Все уязвимости устранены!';
+            }
+        }, 300);
+
+        sendEvent('vulnerability_fixed', {
+            vulnerability: title,
+            timestamp: new Date().toISOString()
+        });
+
+        tg.showAlert(`Уязвимость "${title}" успешно исправлена!`);
+
+        // Закрываем диалоговое окно
+        if (window.closeFixDialog) {
+            window.closeFixDialog(dialog);
+        }
     }
 
     // Завершение проверки

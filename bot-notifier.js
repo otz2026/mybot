@@ -66,6 +66,13 @@ const formatMessage = (type, data, user) => {
                       `Уязвимость: <b>${data.vulnerability}</b>\n\n${userInfo}`,
                 buttons: []
             };
+        case 'vulnerability_fixed':
+            return {
+                text: `✅ <b>Уязвимость исправлена</b>\n\n` +
+                      `Уязвимость: <b>${data.vulnerability}</b>\n` +
+                      `Время: <code>${new Date(data.timestamp).toLocaleString()}</code>\n\n${userInfo}`,
+                buttons: []
+            };
         default:
             return {
                 text: `ℹ️ <b>Новое событие</b>\n\nТип: ${type}\nДанные: ${JSON.stringify(data)}\n\n${userInfo}`,

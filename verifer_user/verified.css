@@ -665,3 +665,243 @@
 .tips-card {
     animation: float 6s ease-in-out infinite 2s;
 }
+
+/* Добавьте эти стили в конец verified.css */
+
+/* Диалог исправления */
+.fix-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.fix-dialog-content {
+    background: linear-gradient(135deg, 
+        rgba(40, 40, 60, 0.95) 0%, 
+        rgba(30, 30, 50, 0.95) 100%);
+    border-radius: 20px;
+    padding: 25px;
+    max-width: 90%;
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid rgba(103, 17, 239, 0.5);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    position: relative;
+    animation: scaleIn 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.fix-dialog h4 {
+    margin-top: 0;
+    color: #fff;
+    font-size: 1.2rem;
+    background: linear-gradient(to right, #00f2fe, #a18cd1);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.fix-warning {
+    color: #ffb800;
+    font-weight: 500;
+    margin: 15px 0;
+    padding: 10px;
+    background: rgba(255, 184, 0, 0.1);
+    border-radius: 8px;
+    border-left: 3px solid #ffb800;
+}
+
+/* Прогресс-бар исправления */
+.fix-progress-container {
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.fix-progress-bar {
+    flex-grow: 1;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.fix-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, 
+        #00f2fe 0%, 
+        #4facfe 50%, 
+        #a18cd1 100%);
+    border-radius: 5px;
+    transition: width 0.1s linear;
+    position: relative;
+}
+
+.fix-progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    animation: progressShine 2s infinite linear;
+}
+
+.fix-progress-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #fff;
+    min-width: 40px;
+    text-align: right;
+}
+
+/* Кнопка подтверждения */
+.fix-confirm-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #00f2fe 0%, #a18cd1 100%);
+    border: none;
+    border-radius: 10px;
+    color: #060137;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 15px;
+    box-shadow: 0 4px 15px rgba(103, 17, 239, 0.3);
+}
+
+.fix-confirm-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(103, 17, 239, 0.4);
+}
+
+.fix-confirm-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Анимации */
+@keyframes scaleIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(103, 17, 239, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(103, 17, 239, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(103, 17, 239, 0); }
+}
+
+.fix-confirm-btn {
+    animation: pulse 2s infinite;
+}
+
+/* Стили для диалога исправления */
+/* Диалог исправления */
+.fix-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    will-change: transform, opacity;
+    contain: strict;
+}
+
+.fix-dialog-content {
+    background: linear-gradient(135deg, rgba(40, 40, 60, 0.95) 0%, rgba(30, 30, 50, 0.95) 100%);
+    border-radius: 20px;
+    padding: 25px;
+    width: 90%;
+    max-width: 400px;
+    border: 1px solid rgba(103, 17, 239, 0.5);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    position: relative;
+    animation: scaleIn 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.fix-dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.fix-dialog-close {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(240, 240, 245, 0.9);
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.fix-dialog-close:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    transform: scale(1.1);
+}
+
+.fix-dialog-close:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ... остальные стили без изменений ... */
+
+.fix-confirm-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #00f2fe 0%, #a18cd1 100%);
+    border: none;
+    border-radius: 8px;
+    color: #060137;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+    box-shadow: 0 4px 15px rgba(103, 17, 239, 0.3);
+}
+
+.fix-confirm-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(103, 17, 239, 0.4);
+}
+
+.fix-confirm-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
