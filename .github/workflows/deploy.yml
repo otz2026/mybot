@@ -6,7 +6,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest  # ОС для виртуального сервера
+    runs-on: ubuntu-latest  # ОС для виртуального серверf
 
     steps:
       # Шаг 1: Клонируем репозиторий
