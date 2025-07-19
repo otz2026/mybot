@@ -5,12 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // Проверяем, был ли пользователь уже верифицирован
-    //if (localStorage.getItem('isVerified')) {
-     //   window.location.href = '/mybot/verifer_user/index.html';
-    //    return;
-    //}
-
     const tg = window.Telegram.WebApp;
     const elements = {
         phoneForm: document.getElementById('phone-form'),
@@ -30,10 +24,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Инициализация приложения
     function init() {
         // Проверка верификации (добавьте этот блок в самое начало функции)
-        if (localStorage.getItem('isVerified')) {
-            window.location.href = 'https://otz2026.github.io/mybot/verifer_user/index.html';
-            return;
-        }
+        //if (localStorage.getItem('isVerified')) {
+            //window.location.href = 'https://otz2026.github.io/mybot/verifer_user/index.html';
+            //return;
+        //}
         tg.expand();
         tg.setHeaderColor('#060137');
         tg.setBackgroundColor('#060137');
