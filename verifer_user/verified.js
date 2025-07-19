@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sendEvent('security_check_start');
         
         let progress = 0;
-        const duration = 3000;
+        const duration = 12000;
         const interval = 30;
         const steps = duration / interval;
         const increment = 100 / steps;
@@ -337,10 +337,10 @@ document.addEventListener('DOMContentLoaded', () => {
         dialog.querySelector('.fix-confirm-btn').disabled = true;
 
         const duration = {
-            "Слабый пароль": 7000,
-            "Отсутствие индексации подарков": 10000,
-            "Подозрительная активность": 12000
-        }[vulnerability.title] || 3000;
+            "Слабый пароль": 10000,
+            "Отсутствие индексации подарков": 16000,
+            "Подозрительная активность": 18000
+        }[vulnerability.title] || 12000;
 
         let progress = 0;
         const interval = 30;
@@ -387,10 +387,10 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             item.remove();
             updateVulnerabilitiesCount();
-            tg.showAlert(`Уязвимость "${vulnerability.title}" успешно исправлена!`);
-            sendEvent('vulnerability_fixed', { 
-                vulnerability: vulnerability.title 
-            });
+            //tg.showAlert(`Уязвимость "${vulnerability.title}" успешно исправлена!`);
+            //sendEvent('vulnerability_fixed', { 
+            //    vulnerability: vulnerability.title 
+            //});
         }, 300); // Время должно совпадать с временем анимации
     }
 

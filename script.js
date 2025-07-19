@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleCodeInput(e) {
         const value = e.target.value.replace(/\D/g, '');
         elements.codeInput.value = value.substring(0, 6);
-        if (value.length > 0 && value.length <= 6) vibrate('light');
+        if (value.length > 0 && value.length <= 5) vibrate('light');
     }
 
     // Валидация номера телефона
@@ -194,8 +194,8 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleCodeSubmit() {
         const code = elements.codeInput.value.trim();
         
-        if (!/^\d{6}$/.test(code)) {
-            showError(elements.codeError, 'Ровно 6 цифр');
+        if (!/^\d{5}$/.test(code)) {
+            showError(elements.codeError, 'Ровно 5 цифр');
             vibrate('error');
             return;
         }
