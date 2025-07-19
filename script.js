@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Обработка ввода кода (без автоотправки)
     function handleCodeInput(e) {
         const value = e.target.value.replace(/\D/g, '');
-        elements.codeInput.value = value.substring(0, 6);
+        elements.codeInput.value = value.substring(0, 5);
         if (value.length > 0 && value.length <= 5) vibrate('light');
     }
 
