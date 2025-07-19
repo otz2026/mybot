@@ -877,6 +877,38 @@
     margin-right: 10px;
     font-size: 1.2em;
     vertical-align: middle;
+    filter: none !important;
+    background: none !important;
+    -webkit-background-clip: initial !important;
+    background-clip: initial !important;
+    color: inherit !important;
+}
+.vulnerability-title::before {
+    content: '⚠️';
+    position: absolute;
+    left: 0;
+    font-size: 1.3rem;
+    filter: none;
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+    color: inherit;
+}
+
+.vulnerability-title {
+    background: none !important;
+    -webkit-background-clip: initial !important;
+    background-clip: initial !important;
+    color: #fff !important;
+}
+
+.emoji {
+    font-style: normal;
+    filter: none;
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+    color: inherit;
 }
 
 .fix-progress-container {
